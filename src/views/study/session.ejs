@@ -192,18 +192,18 @@
       </div>
 
       <!-- Navigation Buttons (shown after answering) -->
-      <div id="navigation-buttons" class="flex space-x-4 mt-4" style="display: none;">
+      <div id="navigation-buttons" class="flex justify-between gap-4 mt-4" style="display: none;">
         <button 
           onclick="previousCard()" 
           id="prev-btn"
-          class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          class="bg-gray-500 text-white py-3 px-6 rounded-lg hover:bg-gray-600 transition font-semibold"
         >
           <i class="fas fa-arrow-left"></i> Previous
         </button>
         <button 
           onclick="nextCard()" 
           id="next-btn"
-          class="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition font-semibold"
+          class="bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition font-semibold"
         >
           <i class="fas fa-arrow-right"></i> Next
         </button>
@@ -737,6 +737,9 @@
         document.getElementById('card-info').textContent = 
           `Streak: ${card.consecutive_correct || 0} | ${card.is_mastered ? 'Mastered ✓' : 'Learning'}`;
       }
+
+      // Update navigation buttons visibility
+      updateNavigationButtons();
     }, 50);
   }
 
@@ -1046,8 +1049,24 @@
 
   function updateNavigationButtons() {
     const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    
     if (prevBtn) {
-      prevBtn.disabled = currentIndex === 0;
+      // Hide prev button if at first card of filtered set
+      if (currentIndex === 0) {
+        prevBtn.style.display = 'none';
+      } else {
+        prevBtn.style.display = 'block';
+      }
+    }
+    
+    if (nextBtn) {
+      // Hide next button if at last card of filtered set
+      if (currentIndex >= filteredFlashcards.length - 1) {
+        nextBtn.style.display = 'none';
+      } else {
+        nextBtn.style.display = 'block';
+      }
     }
   }
 
@@ -1638,6 +1657,21 @@
       margin-bottom: 0.75rem;
     }
   }
+
+  /* Navigation buttons styling */
+  #navigation-buttons {
+    justify-content: space-between;
+  }
+
+  /* When only Previous button visible, align left */
+  #navigation-buttons #prev-btn:only-child {
+    margin-right: auto;
+  }
+
+  /* When only Next button visible, align right */
+  #navigation-buttons #next-btn:last-child:not(:first-child) {
+    margin-left: auto;
+  }
   
   /* Focus Mode - Centered, Clean Layout with 98vw/98vh limit */
   body.focus-mode-active {
@@ -1893,7 +1927,7 @@
   /* Progress bar in Focus Mode - Fixed at top */
   body.focus-mode-active #progress-section {
     position: fixed !important;
-    top: 3.5rem !important;
+    top: 5rem !important;
     left: 0 !important;
     right: 0 !important;
     padding: 0.5rem 1rem !important;
