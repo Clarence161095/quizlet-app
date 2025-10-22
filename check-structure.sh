@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "=================================="
-echo "  Quizlet App - Structure Check"
+echo "  Qi App - Structure Check"
 echo "=================================="
 echo ""
 

@@ -61,7 +61,7 @@ router.get('/mfa-setup', (req, res) => {
 
   const isForced = req.query.force === '1';
   const secret = speakeasy.generateSecret({
-    name: `QuizletApp-${req.user.username}`
+    name: `QiApp-${req.user.username}`
   });
 
   req.session.tempMfaSecret = secret.base32;

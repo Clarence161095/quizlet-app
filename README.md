@@ -1,6 +1,6 @@
-# Quizlet Learning App
+# Qi Learning App
 
-A complete flashcard learning application with spaced repetition system, similar to Quizlet.
+A complete flashcard learning application with spaced repetition system.
 
 ## Features
 

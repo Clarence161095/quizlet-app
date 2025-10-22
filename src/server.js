@@ -44,6 +44,10 @@ app.use(session({
   }
 }));
 
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Flash messages middleware
 app.use((req, res, next) => {
   req.flash = (type, message) => {
@@ -60,15 +64,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// Passport middleware
-app.use(passport.initialize());
-app.use(passport.session());
-
-// Make user available in all views
+// Add user info and title to all views
 app.use((req, res, next) => {
-  res.locals.user = req.user;
   res.locals.isAuthenticated = req.isAuthenticated();
-  res.locals.title = res.locals.title || 'Quizlet App';
+  res.locals.user = req.user;
+  res.locals.title = res.locals.title || 'Qi App';
   next();
 });
 

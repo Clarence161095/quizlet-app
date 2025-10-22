@@ -1,4 +1,4 @@
-# Copilot Instructions for Quizlet Learning App
+# Copilot Instructions for Qi Learning App
 
 ## Architecture Overview
 

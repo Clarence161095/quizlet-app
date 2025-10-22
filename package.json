@@ -1,7 +1,7 @@
 {
-  "name": "quizlet-app",
+  "name": "qi-app",
   "version": "1.0.0",
-  "description": "A Quizlet-like flashcard learning app with spaced repetition",
+  "description": "A flashcard learning app with spaced repetition",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -9,10 +9,10 @@
     "init-db": "node src/database/init.js"
   },
   "keywords": [
-    "flashcard",
+    "flashcards",
     "learning",
-    "spaced-repetition",
-    "quizlet"
+    "spaced repetition",
+    "qi"
   ],
   "author": "",
   "license": "MIT",

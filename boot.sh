@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "========================================="
-echo "  Quizlet Learning App - Boot Script"
+echo "  Qi Learning App - Boot Script"
 echo "========================================="
 echo ""
 
@@ -70,7 +70,7 @@ echo ""
 
 # Start the application
 echo "========================================="
-echo "  Starting Quizlet Learning App..."
+echo "  Starting Qi Learning App..."
 echo "========================================="
 echo ""
 echo -e "${GREEN}Default admin credentials:${NC}"
