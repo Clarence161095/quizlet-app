@@ -1,0 +1,127 @@
+<div class="max-w-6xl mx-auto">
+  <div class="mb-6">
+    <a href="/folders/<%= folder.id %>" class="text-blue-600 hover:underline">
+      <i class="fas fa-arrow-left"></i> Back to Folder
+    </a>
+  </div>
+
+  <div class="bg-white p-8 rounded-lg shadow mb-6">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">
+      <i class="fas fa-layer-group text-blue-600"></i> Manage Sets
+    </h1>
+    <p class="text-gray-600">Add or remove sets from "<%= folder.name %>"</p>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    <!-- Current Sets in Folder -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">
+        <i class="fas fa-check-circle text-green-600"></i> Sets in This Folder
+        <span class="text-sm font-normal text-gray-500">(<%= currentSets.length %>)</span>
+      </h2>
+
+      <% if (currentSets.length === 0) { %>
+        <div class="text-center py-8 text-gray-500">
+          <i class="fas fa-folder-open text-4xl mb-2"></i>
+          <p>No sets in this folder yet</p>
+          <p class="text-sm">Add sets from the available list →</p>
+        </div>
+      <% } else { %>
+        <div class="space-y-3">
+          <% currentSets.forEach(set => { %>
+            <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition">
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <h3 class="font-semibold text-gray-800 mb-1">
+                    <a href="/sets/<%= set.id %>" class="hover:text-blue-600">
+                      <%= set.name %>
+                    </a>
+                  </h3>
+                  <% if (set.description) { %>
+                    <p class="text-sm text-gray-600 mb-2"><%= set.description %></p>
+                  <% } %>
+                  <p class="text-xs text-gray-500">
+                    <i class="fas fa-clock"></i> <%= new Date(set.created_at).toLocaleDateString() %>
+                  </p>
+                </div>
+                <form action="/folders/<%= folder.id %>/remove-set/<%= set.id %>" method="POST" class="ml-4">
+                  <button 
+                    type="submit" 
+                    class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm"
+                    onclick="return confirm('Remove this set from the folder?')"
+                  >
+                    <i class="fas fa-times"></i> Remove
+                  </button>
+                </form>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Available Sets to Add -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">
+        <i class="fas fa-plus-circle text-blue-600"></i> Available Sets
+        <span class="text-sm font-normal text-gray-500">(<%= availableSets.length %>)</span>
+      </h2>
+
+      <% if (availableSets.length === 0) { %>
+        <div class="text-center py-8 text-gray-500">
+          <i class="fas fa-check-double text-4xl mb-2"></i>
+          <p>All your sets are already in this folder!</p>
+          <p class="text-sm mt-2">
+            <a href="/sets/create" class="text-blue-600 hover:underline">
+              <i class="fas fa-plus"></i> Create a new set
+            </a>
+          </p>
+        </div>
+      <% } else { %>
+        <div class="space-y-3">
+          <% availableSets.forEach(set => { %>
+            <div class="border border-gray-200 rounded-lg p-4 hover:border-green-300 transition">
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <h3 class="font-semibold text-gray-800 mb-1">
+                    <a href="/sets/<%= set.id %>" class="hover:text-blue-600">
+                      <%= set.name %>
+                    </a>
+                  </h3>
+                  <% if (set.description) { %>
+                    <p class="text-sm text-gray-600 mb-2"><%= set.description %></p>
+                  <% } %>
+                  <p class="text-xs text-gray-500">
+                    <i class="fas fa-clock"></i> <%= new Date(set.created_at).toLocaleDateString() %>
+                  </p>
+                </div>
+                <form action="/folders/<%= folder.id %>/add-set" method="POST" class="ml-4">
+                  <input type="hidden" name="setId" value="<%= set.id %>">
+                  <button 
+                    type="submit" 
+                    class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition text-sm"
+                  >
+                    <i class="fas fa-plus"></i> Add
+                  </button>
+                </form>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Info Box -->
+  <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
+    <h3 class="font-semibold text-gray-800 mb-2">
+      <i class="fas fa-info-circle text-blue-600"></i> About Many-to-Many Folders
+    </h3>
+    <ul class="text-sm text-gray-700 space-y-1">
+      <li><i class="fas fa-check text-green-600"></i> A set can belong to multiple folders</li>
+      <li><i class="fas fa-check text-green-600"></i> Removing a set from a folder doesn't delete the set</li>
+      <li><i class="fas fa-check text-green-600"></i> Your learning progress is preserved across all folders</li>
+      <li><i class="fas fa-check text-green-600"></i> Study a folder to practice all its sets together</li>
+    </ul>
+  </div>
+</div>

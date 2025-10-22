@@ -9,6 +9,12 @@ const LearningProgress = require('../models/LearningProgress');
 // List all sets
 router.get('/', ensureAuthenticated, checkMFA, (req, res) => {
   const sets = Set.findByUserId(req.user.id);
+  
+  // Add folder names to each set
+  sets.forEach(set => {
+    set.folderNames = Set.getFolderNames(set.id);
+  });
+  
   res.render('sets/index', {
     title: 'My Sets',
     user: req.user,

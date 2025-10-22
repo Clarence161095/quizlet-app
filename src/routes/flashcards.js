@@ -3,6 +3,7 @@ const router = express.Router();
 const { ensureAuthenticated, checkMFA } = require('../middleware/auth');
 const Flashcard = require('../models/Flashcard');
 const UserNote = require('../models/UserNote');
+const LearningProgress = require('../models/LearningProgress');
 const Set = require('../models/Set');
 
 // Create flashcard page
@@ -48,13 +49,15 @@ router.get('/:id/edit', ensureAuthenticated, checkMFA, (req, res) => {
   }
 
   const userNote = UserNote.findByUserAndFlashcard(req.user.id, req.params.id);
+  const progress = LearningProgress.findByUserAndFlashcard(req.user.id, req.params.id);
 
   res.render('flashcards/edit', {
     title: 'Edit Flashcard',
     user: req.user,
     flashcard,
     set,
-    userNote
+    userNote,
+    progress
   });
 });
 

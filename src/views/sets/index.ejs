@@ -39,11 +39,9 @@
             <% } %>
 
             <div class="flex items-center text-sm text-gray-500 space-x-4 mb-4">
-              <% if (set.folder_name) { %>
-                <span>
-                  <i class="fas fa-folder"></i> <%= set.folder_name %>
-                </span>
-              <% } %>
+              <span>
+                <i class="fas fa-folder"></i> <%= set.folderNames %>
+              </span>
               <span>
                 <i class="fas fa-calendar"></i> <%= new Date(set.created_at).toLocaleDateString() %>
               </span>

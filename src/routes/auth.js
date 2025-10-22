@@ -29,14 +29,23 @@ router.post('/login', (req, res, next) => {
         return next(err);
       }
       
-      // Check if MFA is enabled
+      // Check if MFA is enabled - require verification
       if (user.mfa_enabled) {
+        // Clear any previous MFA verification
+        req.session.mfaVerified = false;
         return res.redirect('/auth/mfa-verify');
       }
       
-      // Check if admin needs to setup MFA (first login)
-      if (user.is_admin && !user.mfa_enabled && user.username === 'admin') {
-        return res.redirect('/auth/mfa-setup');
+      // For users without MFA, check if it's admin's first login
+      // Only force MFA setup for admin users
+      if (user.is_admin && !user.mfa_enabled) {
+        return res.redirect('/auth/mfa-setup?force=1');
+      }
+      
+      // Regular users without MFA can proceed
+      // But set first_login to 0 to avoid repeated prompts
+      if (user.first_login) {
+        User.update(user.id, { first_login: 0 });
       }
 
       return res.redirect('/dashboard');
@@ -204,12 +213,23 @@ router.post('/change-password', async (req, res) => {
 });
 
 // Logout
-router.get('/logout', (req, res) => {
+router.get('/logout', (req, res, next) => {
   req.logout((err) => {
     if (err) {
       return next(err);
     }
-    res.redirect('/auth/login');
+    // Clear MFA verification from session
+    req.session.mfaVerified = false;
+    delete req.session.mfaVerified;
+    delete req.session.tempMfaSecret;
+    
+    // Destroy session completely for security
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Session destruction error:', err);
+      }
+      res.redirect('/auth/login');
+    });
   });
 });
 

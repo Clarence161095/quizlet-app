@@ -140,13 +140,15 @@ class LearningProgress {
   static getDueFlashcardsInFolder(userId, folderId) {
     const now = new Date().toISOString();
     
+    // Use junction table for many-to-many relationship
     const stmt = db.prepare(`
       SELECT f.*, lp.next_review_date, lp.consecutive_correct, lp.is_mastered
       FROM flashcards f
       INNER JOIN sets s ON f.set_id = s.id
+      INNER JOIN folder_sets fs ON s.id = fs.set_id
       LEFT JOIN learning_progress lp ON f.id = lp.flashcard_id AND lp.user_id = ?
-      WHERE s.folder_id = ? AND (lp.next_review_date IS NULL OR lp.next_review_date <= ?)
-      ORDER BY lp.is_mastered ASC, lp.next_review_date ASC
+      WHERE fs.folder_id = ? AND (lp.next_review_date IS NULL OR lp.next_review_date <= ?)
+      ORDER BY fs.added_at ASC, lp.is_mastered ASC, lp.next_review_date ASC
     `);
 
     return stmt.all(userId, folderId, now);
@@ -171,6 +173,22 @@ class LearningProgress {
 
     const stmt = db.prepare(query);
     return stmt.get(...params);
+  }
+
+  static getProgressStatsForFolder(userId, folderId) {
+    // Get stats for all flashcards in all sets within a folder (via junction table)
+    const stmt = db.prepare(`
+      SELECT 
+        COUNT(DISTINCT f.id) as total,
+        COUNT(DISTINCT CASE WHEN lp.is_mastered = 1 THEN f.id END) as mastered,
+        COUNT(DISTINCT CASE WHEN lp.consecutive_correct > 0 AND lp.is_mastered = 0 THEN f.id END) as learning
+      FROM flashcards f
+      INNER JOIN sets s ON f.set_id = s.id
+      INNER JOIN folder_sets fs ON s.id = fs.set_id
+      LEFT JOIN learning_progress lp ON f.id = lp.flashcard_id AND lp.user_id = ?
+      WHERE fs.folder_id = ?
+    `);
+    return stmt.get(userId, folderId);
   }
 }
 

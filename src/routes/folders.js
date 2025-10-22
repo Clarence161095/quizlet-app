@@ -41,7 +41,7 @@ router.get('/:id', ensureAuthenticated, checkMFA, (req, res) => {
 
   const sets = Folder.getSetsInFolder(req.params.id);
   const flashcards = Folder.getFlashcardsInFolder(req.params.id);
-  const stats = LearningProgress.getProgressStats(req.user.id);
+  const stats = LearningProgress.getProgressStatsForFolder(req.user.id, req.params.id);
 
   res.render('folders/view', {
     title: folder.name,
@@ -141,6 +141,63 @@ router.get('/:id/random', ensureAuthenticated, checkMFA, (req, res) => {
     entityType: 'folder',
     entityId: req.params.id
   });
+});
+
+// Manage sets in folder page
+router.get('/:id/manage-sets', ensureAuthenticated, checkMFA, (req, res) => {
+  const folder = Folder.findById(req.params.id);
+  
+  if (!folder || folder.user_id !== req.user.id) {
+    return res.status(404).send('Folder not found');
+  }
+
+  const currentSets = Folder.getSetsInFolder(req.params.id);
+  const currentSetIds = currentSets.map(s => s.id);
+  
+  // Get all user's sets that are NOT in this folder
+  const allSets = Set.findByUserId(req.user.id);
+  const availableSets = allSets.filter(s => !currentSetIds.includes(s.id));
+
+  res.render('folders/manage-sets', {
+    title: `Manage Sets: ${folder.name}`,
+    user: req.user,
+    folder,
+    currentSets,
+    availableSets
+  });
+});
+
+// Add set to folder
+router.post('/:id/add-set', ensureAuthenticated, checkMFA, (req, res) => {
+  const folder = Folder.findById(req.params.id);
+  
+  if (!folder || folder.user_id !== req.user.id) {
+    return res.status(404).send('Folder not found');
+  }
+
+  const { setId } = req.body;
+  const set = Set.findById(setId);
+  
+  if (!set || set.user_id !== req.user.id) {
+    return res.status(404).send('Set not found');
+  }
+
+  Folder.addSetToFolder(req.params.id, setId);
+  req.flash('success', `Set "${set.name}" added to folder`);
+  res.redirect(`/folders/${req.params.id}/manage-sets`);
+});
+
+// Remove set from folder
+router.post('/:folderId/remove-set/:setId', ensureAuthenticated, checkMFA, (req, res) => {
+  const folder = Folder.findById(req.params.folderId);
+  
+  if (!folder || folder.user_id !== req.user.id) {
+    return res.status(404).send('Folder not found');
+  }
+
+  Folder.removeSetFromFolder(req.params.folderId, req.params.setId);
+  req.flash('success', 'Set removed from folder');
+  res.redirect(`/folders/${req.params.folderId}/manage-sets`);
 });
 
 module.exports = router;

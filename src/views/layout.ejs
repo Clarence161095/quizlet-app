@@ -35,7 +35,7 @@
     }
   </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 flex flex-col min-h-screen">
   <!-- Navigation -->
   <% if (isAuthenticated) { %>
   <nav class="bg-white shadow-lg sticky top-0 z-50">
@@ -54,6 +54,9 @@
             </a>
             <a href="/sets" class="text-gray-700 hover:text-blue-600">
               <i class="fas fa-layer-group"></i> Sets
+            </a>
+            <a href="/shares/my-shares" class="text-gray-700 hover:text-blue-600">
+              <i class="fas fa-handshake"></i> My Shares
             </a>
             <% if (user.is_admin) { %>
             <a href="/admin" class="text-gray-700 hover:text-blue-600">
@@ -91,6 +94,9 @@
           </a>
           <a href="/sets" class="block py-2 text-gray-700 hover:text-blue-600">
             <i class="fas fa-layer-group"></i> Sets
+          </a>
+          <a href="/shares/my-shares" class="block py-2 text-gray-700 hover:text-blue-600">
+            <i class="fas fa-handshake"></i> My Shares
           </a>
           <% if (user.is_admin) { %>
           <a href="/admin" class="block py-2 text-gray-700 hover:text-blue-600">
@@ -136,12 +142,12 @@
   <% } %>
 
   <!-- Main Content -->
-  <main class="container mx-auto px-4 py-8">
+  <main class="container mx-auto px-4 py-8 flex-1">
     <%- body %>
   </main>
 
   <!-- Footer -->
-  <footer class="bg-white mt-12 py-6 border-t">
+  <footer class="bg-white py-6 border-t mt-auto">
     <div class="container mx-auto px-4 text-center text-gray-600">
       <p>&copy; 2025 Quizlet Learning App. All rights reserved.</p>
     </div>

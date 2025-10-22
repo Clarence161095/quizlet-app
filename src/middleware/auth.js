@@ -19,8 +19,13 @@ function checkPasswordChange(req, res, next) {
 }
 
 // Middleware to check if user needs to setup MFA on first login
+// Only enforced for admin users
 function checkFirstLogin(req, res, next) {
-  if (req.user && req.user.first_login && !req.user.must_change_password) {
+  // Only force MFA setup for admin users who:
+  // 1. Are on first login
+  // 2. Haven't changed password yet (to avoid conflict)
+  // 3. Don't have MFA enabled yet (to avoid infinite redirect)
+  if (req.user && req.user.is_admin && req.user.first_login && !req.user.must_change_password && !req.user.mfa_enabled) {
     // Allow access to MFA setup page and logout
     const allowedPaths = ['/auth/mfa-setup', '/auth/logout', '/auth/mfa-verify'];
     if (!allowedPaths.includes(req.path)) {

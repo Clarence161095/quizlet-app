@@ -16,6 +16,8 @@ class Set {
   }
 
   static findByUserId(userId) {
+    // Note: This query still uses folder_id for backward compatibility
+    // For many-to-many, use Folder.getFoldersForSet(setId) instead
     const stmt = db.prepare(`
       SELECT s.*, f.name as folder_name 
       FROM sets s
@@ -27,8 +29,26 @@ class Set {
   }
 
   static findByFolderId(folderId) {
-    const stmt = db.prepare('SELECT * FROM sets WHERE folder_id = ? ORDER BY created_at DESC');
+    // Use junction table for many-to-many relationship
+    const stmt = db.prepare(`
+      SELECT s.* FROM sets s
+      INNER JOIN folder_sets fs ON s.id = fs.set_id
+      WHERE fs.folder_id = ?
+      ORDER BY fs.added_at DESC, s.created_at DESC
+    `);
     return stmt.all(folderId);
+  }
+
+  static getFolderNames(setId) {
+    // Get all folder names that contain this set (for display)
+    const stmt = db.prepare(`
+      SELECT f.name FROM folders f
+      INNER JOIN folder_sets fs ON f.id = fs.folder_id
+      WHERE fs.set_id = ?
+      ORDER BY f.name ASC
+    `);
+    const folders = stmt.all(setId);
+    return folders.map(f => f.name).join(', ') || 'No folder';
   }
 
   static update(id, name, description, folderId) {

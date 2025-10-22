@@ -12,17 +12,17 @@
 
     <form action="/flashcards/<%= flashcard.id %>/edit" method="POST">
       <div class="mb-6">
-        <label for="term" class="block text-gray-700 font-semibold mb-2">
+        <label for="word" class="block text-gray-700 font-semibold mb-2">
           Term (Question) <span class="text-red-500">*</span>
         </label>
         <textarea 
-          id="term" 
-          name="term" 
+          id="word" 
+          name="word" 
           rows="4"
           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
           required
           autofocus
-        ><%= flashcard.term %></textarea>
+        ><%= flashcard.word %></textarea>
         <p class="text-sm text-gray-500 mt-2">The front side of the flashcard (supports multi-line text)</p>
       </div>
 
@@ -41,12 +41,12 @@
       </div>
 
       <div class="mb-6">
-        <label for="user_note" class="block text-gray-700 font-semibold mb-2">
+        <label for="note" class="block text-gray-700 font-semibold mb-2">
           Personal Note
         </label>
         <textarea 
-          id="user_note" 
-          name="user_note" 
+          id="note" 
+          name="note" 
           rows="4"
           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
           placeholder="Add your personal notes about this flashcard (optional)"

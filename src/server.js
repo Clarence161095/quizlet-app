@@ -24,8 +24,8 @@ app.set('layout extractScripts', false);
 app.set('layout extractStyles', false);
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' })); // Tăng limit cho JSON
+app.use(express.urlencoded({ extended: true, limit: '50mb' })); // Tăng limit cho form data
 app.use(cookieParser());
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, '../public')));
@@ -101,13 +101,15 @@ app.use('/folders', require('./routes/folders'));
 app.use('/sets', require('./routes/sets'));
 app.use('/flashcards', require('./routes/flashcards'));
 app.use('/study', require('./routes/study'));
+app.use('/shares', require('./routes/shares'));
 
 // Error handling
 app.use((req, res) => {
   res.status(404).render('error', {
     title: '404 - Not Found',
     message: 'Page not found',
-    user: req.user
+    user: req.user,
+    isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false
   });
 });
 
@@ -116,7 +118,8 @@ app.use((err, req, res, next) => {
   res.status(500).render('error', {
     title: '500 - Server Error',
     message: 'Something went wrong!',
-    user: req.user
+    user: req.user,
+    isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false
   });
 });
 

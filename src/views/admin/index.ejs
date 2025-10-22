@@ -6,7 +6,7 @@
   </div>
 
   <div class="mb-6">
-    <a href="/admin/create-user" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition inline-block">
+    <a href="/admin/users/create" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition inline-block">
       <i class="fas fa-user-plus"></i> Create New User
     </a>
   </div>
@@ -79,8 +79,8 @@
               <%= new Date(user.created_at).toLocaleDateString() %>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-              <% if (user.is_active) { %>
-                <form action="/admin/users/<%= user.id %>/deactivate" method="POST" class="inline">
+              <form action="/admin/users/<%= user.id %>/toggle-active" method="POST" class="inline">
+                <% if (user.is_active) { %>
                   <button 
                     type="submit" 
                     class="text-yellow-600 hover:text-yellow-900"
@@ -88,17 +88,15 @@
                   >
                     <i class="fas fa-user-slash"></i> Deactivate
                   </button>
-                </form>
-              <% } else { %>
-                <form action="/admin/users/<%= user.id %>/activate" method="POST" class="inline">
+                <% } else { %>
                   <button 
                     type="submit" 
                     class="text-green-600 hover:text-green-900"
                   >
                     <i class="fas fa-user-check"></i> Activate
                   </button>
-                </form>
-              <% } %>
+                <% } %>
+              </form>
               
               <% if (!user.is_admin) { %>
                 <form action="/admin/users/<%= user.id %>/delete" method="POST" class="inline">

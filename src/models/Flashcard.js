@@ -64,10 +64,13 @@ class Flashcard {
   }
 
   static getStarredByFolderId(folderId) {
+    // Use junction table for many-to-many relationship
     const stmt = db.prepare(`
       SELECT f.* FROM flashcards f
       INNER JOIN sets s ON f.set_id = s.id
-      WHERE s.folder_id = ? AND f.is_starred = 1
+      INNER JOIN folder_sets fs ON s.id = fs.set_id
+      WHERE fs.folder_id = ? AND f.is_starred = 1
+      ORDER BY fs.added_at ASC, f.created_at DESC
     `);
     return stmt.all(folderId);
   }

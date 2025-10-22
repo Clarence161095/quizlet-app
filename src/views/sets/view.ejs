@@ -11,8 +11,21 @@
         <% } %>
       </div>
       <div class="flex space-x-2">
-        <a href="/sets/<%= set.id %>/edit" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
-          <i class="fas fa-edit"></i> Edit
+        <% if (set.source_set_id) { %>
+          <!-- Cloned set: Show Update button, hide Edit button -->
+          <form action="/shares/sets/<%= set.id %>/update-from-source" method="POST" onsubmit="return confirm('This will replace all flashcards with the latest from source. Your learning progress will be kept. Continue?');" class="inline">
+            <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+              <i class="fas fa-sync"></i> Update from Source
+            </button>
+          </form>
+        <% } else { %>
+          <!-- Original set: Show Edit button -->
+          <a href="/sets/<%= set.id %>/edit" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
+            <i class="fas fa-edit"></i> Edit
+          </a>
+        <% } %>
+        <a href="/shares/sets/<%= set.id %>/share" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+          <i class="fas fa-share-alt"></i> Share
         </a>
         <form action="/sets/<%= set.id %>/delete" method="POST" onsubmit="return confirm('Delete this set and all flashcards?');" class="inline">
           <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
@@ -71,18 +84,33 @@
         <i class="fas fa-cards text-blue-500"></i> Flashcards (<%= flashcards.length %>)
       </h2>
       <div class="flex space-x-2">
-        <a href="/sets/<%= set.id %>/export?termSep=tab&cardSep=newline" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 text-sm">
-          <i class="fas fa-download"></i> Export
-        </a>
-        <button onclick="toggleImportForm()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
-          <i class="fas fa-file-import"></i> Import
-        </button>
-        <button onclick="toggleMarkdownImportForm()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 text-sm">
-          <i class="fab fa-markdown"></i> Import MD
-        </button>
-        <a href="/flashcards/create/<%= set.id %>" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
-          <i class="fas fa-plus"></i> Add Card
-        </a>
+        <% if (set.source_set_id) { %>
+          <!-- Cloned set: Only show Export if allowed -->
+          <% if (set.allow_export) { %>
+            <a href="/sets/<%= set.id %>/export?termSep=tab&cardSep=newline" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 text-sm">
+              <i class="fas fa-download"></i> Export
+            </a>
+          <% } else { %>
+            <span class="bg-gray-100 text-gray-400 px-4 py-2 rounded-lg text-sm cursor-not-allowed" title="Export disabled by owner">
+              <i class="fas fa-lock"></i> Export Locked
+            </span>
+          <% } %>
+          <!-- No Import/Add Card buttons for cloned sets -->
+        <% } else { %>
+          <!-- Original set: Show all buttons -->
+          <a href="/sets/<%= set.id %>/export?termSep=tab&cardSep=newline" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 text-sm">
+            <i class="fas fa-download"></i> Export
+          </a>
+          <button onclick="toggleImportForm()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
+            <i class="fas fa-file-import"></i> Import
+          </button>
+          <button onclick="toggleMarkdownImportForm()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 text-sm">
+            <i class="fab fa-markdown"></i> Import MD
+          </button>
+          <a href="/flashcards/create/<%= set.id %>" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+            <i class="fas fa-plus"></i> Add Card
+          </a>
+        <% } %>
       </div>
     </div>
 
@@ -312,14 +340,17 @@ C. Database service</code>
                 >
                   <i class="fas fa-star"></i>
                 </button>
-                <a href="/flashcards/<%= card.id %>/edit" class="text-blue-600 hover:text-blue-700">
-                  <i class="fas fa-edit"></i>
-                </a>
-                <form action="/flashcards/<%= card.id %>/delete" method="POST" onsubmit="return confirm('Delete this flashcard?');" class="inline">
-                  <button type="submit" class="text-red-600 hover:text-red-700">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </form>
+                <% if (!set.source_set_id) { %>
+                  <!-- Only show edit/delete for original sets -->
+                  <a href="/flashcards/<%= card.id %>/edit" class="text-blue-600 hover:text-blue-700">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  <form action="/flashcards/<%= card.id %>/delete" method="POST" onsubmit="return confirm('Delete this flashcard?');" class="inline">
+                    <button type="submit" class="text-red-600 hover:text-red-700">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                <% } %>
               </div>
             </div>
           </div>
