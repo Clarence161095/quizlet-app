@@ -108,7 +108,7 @@
       </div>
 
       <!-- Progress Bar -->
-      <div class="mb-6">
+      <div class="mb-6" id="progress-section">
         <div class="flex justify-between text-sm text-gray-600 mb-2">
           <span>Progress</span>
           <span><span id="current-card">1</span> / <span id="total-filtered"><%= flashcards.length %></span></span>
@@ -765,19 +765,31 @@
     const correctMatch = card.definition.match(/Correct:\s*([A-Z,\s]+)/i);
     const correctAnswers = correctMatch ? correctMatch[1].split(',').map(a => a.trim()) : [];
     
-    // Build HTML - Quizlet-style with numbered circles
+    // Determine if this is multi-choice (more than 1 correct answer) or single-choice
+    const isMultiSelect = correctAnswers.length > 1;
+    
+    // Build HTML - Different display for single vs multi select
+    const instructionText = isMultiSelect ? 
+      `<i class="fas fa-check-square"></i> Choose ALL correct answers (${correctAnswers.length} answers)` : 
+      'Choose one answer';
+    
     let html = `<div class="mc-container">
       <div class="mc-header">
         <span class="mc-label">Term</span>
       </div>
       <p class="mc-question">${question}</p>
-      <div class="mc-instruction">Choose an answer</div>
+      <div class="mc-instruction">${instructionText}</div>
       <div class="mc-options">`;
     
     options.forEach((opt, index) => {
+      // Use checkbox icon for multi-select, letter for single-select
+      const indicator = isMultiSelect ? 
+        `<div class="mc-checkbox"><i class="far fa-square"></i></div>` : 
+        `<div class="mc-number">${opt.letter}</div>`;
+      
       html += `
-        <div class="mc-option" data-answer="${opt.letter}">
-          <div class="mc-number">${index + 1}</div>
+        <div class="mc-option" data-answer="${opt.letter}" data-multi="${isMultiSelect}">
+          ${indicator}
           <div class="mc-text">${opt.text}</div>
         </div>`;
     });
@@ -798,20 +810,34 @@
     document.getElementById('definition-content').innerHTML = 
       `<div class="text-left"><p class="text-lg mb-2">Correct Answer:</p><p class="text-2xl font-bold text-green-600">${correctAnswers.join(', ')}</p></div>`;
     
-    // Add event listeners to options - Allow multiple selection
+    // Add event listeners to options
     document.querySelectorAll('.mc-option').forEach(option => {
       option.addEventListener('click', function() {
         const answer = this.dataset.answer;
+        const isMulti = this.dataset.multi === 'true';
         
-        // Toggle selection
-        if (this.classList.contains('selected')) {
-          // Deselect
-          this.classList.remove('selected');
-          selectedAnswers = selectedAnswers.filter(a => a !== answer);
+        if (isMulti) {
+          // Multi-select: Toggle selection
+          if (this.classList.contains('selected')) {
+            // Deselect
+            this.classList.remove('selected');
+            const checkbox = this.querySelector('.mc-checkbox i');
+            checkbox.className = 'far fa-square';
+            selectedAnswers = selectedAnswers.filter(a => a !== answer);
+          } else {
+            // Select
+            this.classList.add('selected');
+            const checkbox = this.querySelector('.mc-checkbox i');
+            checkbox.className = 'fas fa-check-square';
+            selectedAnswers.push(answer);
+          }
         } else {
-          // Select
+          // Single-select: Clear all and select this one
+          document.querySelectorAll('.mc-option').forEach(opt => {
+            opt.classList.remove('selected');
+          });
           this.classList.add('selected');
-          selectedAnswers.push(answer);
+          selectedAnswers = [answer];
         }
         
         // Enable check button if at least one answer is selected
@@ -849,21 +875,30 @@
       option.style.pointerEvents = 'none';
     });
     
-    // Highlight answers with checkmark/cross in the number circle
+    // Highlight answers with checkmark/cross
     document.querySelectorAll('.mc-option').forEach(option => {
       const letter = option.dataset.answer;
-      const numberEl = option.querySelector('.mc-number');
+      const isMulti = option.dataset.multi === 'true';
+      const indicatorEl = isMulti ? option.querySelector('.mc-checkbox i') : option.querySelector('.mc-number');
       const isSelected = selectedAnswers.includes(letter);
       const isCorrectAnswer = correctAnswers.includes(letter);
       
       if (isCorrectAnswer) {
-        // Correct answer - always show green checkmark
+        // Correct answer - show green checkmark
         option.classList.add('correct');
-        numberEl.innerHTML = '<i class="fas fa-check"></i>';
+        if (isMulti) {
+          indicatorEl.className = 'fas fa-check-circle';
+        } else {
+          indicatorEl.innerHTML = '<i class="fas fa-check"></i>';
+        }
       } else if (isSelected && !isCorrectAnswer) {
         // Wrong answer that user selected - show red X
         option.classList.add('incorrect');
-        numberEl.innerHTML = '<i class="fas fa-times"></i>';
+        if (isMulti) {
+          indicatorEl.className = 'fas fa-times-circle';
+        } else {
+          indicatorEl.innerHTML = '<i class="fas fa-times"></i>';
+        }
       }
       
       // Remove selected state after checking
@@ -1399,6 +1434,28 @@
     margin-right: 0.75rem;
     transition: all 0.2s ease;
   }
+
+  /* Checkbox style for multi-select */
+  .mc-checkbox {
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4b5563;
+    font-size: 1.25rem;
+    margin-right: 0.75rem;
+    transition: all 0.2s ease;
+  }
+
+  .mc-option.selected .mc-checkbox {
+    color: #3b82f6;
+  }
+
+  .mc-option:hover .mc-checkbox {
+    color: #3b82f6;
+  }
   
   @media (min-width: 768px) {
     .mc-number {
@@ -1406,6 +1463,14 @@
       height: 2.5rem;
       min-width: 2.5rem;
       font-size: 1.125rem;
+      margin-right: 1rem;
+    }
+
+    .mc-checkbox {
+      width: 2.5rem;
+      height: 2.5rem;
+      min-width: 2.5rem;
+      font-size: 1.5rem;
       margin-right: 1rem;
     }
   }
@@ -1425,6 +1490,10 @@
     color: white;
     font-size: 1rem;
   }
+
+  .mc-option.correct .mc-checkbox {
+    color: #10b981;
+  }
   
   @media (min-width: 768px) {
     .mc-option.correct .mc-number,
@@ -1437,6 +1506,10 @@
     background: #ef4444;
     color: white;
     font-size: 1rem;
+  }
+
+  .mc-option.incorrect .mc-checkbox {
+    color: #ef4444;
   }
   
   .mc-text {
@@ -1607,9 +1680,10 @@
   body.focus-mode-active #flashcard-container {
     width: 98vw !important;
     max-width: 98vw !important;
-    height: 98vh !important;
-    max-height: 98vh !important;
+    height: calc(98vh - 7rem) !important; /* Subtract space for progress bar and buttons */
+    max-height: calc(98vh - 7rem) !important;
     margin: 0 auto !important;
+    margin-top: 4rem !important; /* Space for progress bar at top */
     padding: 0 !important;
     padding-bottom: 4.5rem !important; /* Space for answer buttons at bottom */
     display: flex !important;
@@ -1817,7 +1891,7 @@
   }
 
   /* Progress bar in Focus Mode - Fixed at top */
-  body.focus-mode-active #flashcard-section > div:nth-child(4) {
+  body.focus-mode-active #progress-section {
     position: fixed !important;
     top: 3.5rem !important;
     left: 0 !important;
@@ -1828,11 +1902,14 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
     z-index: 40 !important;
     margin: 0 !important;
+    margin-bottom: 0 !important;
+    display: block !important;
   }
   
   /* Desktop enhancements for Focus Mode */
   @media (min-width: 768px) {
     body.focus-mode-active #flashcard-container {
+      margin-top: 5rem !important; /* More space for desktop progress bar */
       padding-bottom: 5.5rem !important; /* More space for desktop buttons */
     }
     
@@ -1947,13 +2024,13 @@
     }
 
     /* Progress bar on desktop */
-    body.focus-mode-active #flashcard-section > div:nth-child(4) {
+    body.focus-mode-active #progress-section {
       padding: 1rem 2rem !important;
       max-width: 1200px !important;
-      margin: 0 auto !important;
       left: 50% !important;
       right: auto !important;
       transform: translateX(-50%) !important;
+      top: 4rem !important;
     }
   }
   
