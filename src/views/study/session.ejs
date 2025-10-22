@@ -113,10 +113,11 @@
             <button 
               onclick="toggleFocusMode()" 
               id="exit-focus-btn"
-              class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition text-xs font-semibold hidden"
+              class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition text-xs font-semibold hidden flex items-center gap-1.5"
               style="display: none;"
             >
-              <i class="fas fa-times"></i> Exit
+              <i class="fas fa-times"></i>
+              <span>Exit</span>
             </button>
           </div>
         </div>
@@ -160,7 +161,7 @@
         <button 
           onclick="toggleStar()" 
           id="star-btn-top"
-          class="text-gray-400 hover:text-yellow-500 transition text-2xl px-3 py-2 rounded-lg hover:bg-gray-100"
+          class="text-gray-400 hover:text-yellow-500 transition text-2xl px-3 py-2 rounded-lg hover:bg-gray-100 flex items-center justify-center"
           title="Toggle Star"
         >
           <i class="fas fa-star"></i>
@@ -168,9 +169,10 @@
         <button 
           onclick="toggleFocusMode()" 
           id="focus-btn"
-          class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition text-sm font-semibold"
+          class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition text-sm font-semibold flex items-center gap-2"
         >
-          <i class="fas fa-compress-alt"></i> Focus Mode
+          <i class="fas fa-compress-alt"></i>
+          <span>Focus Mode</span>
         </button>
       </div>
 
@@ -179,10 +181,11 @@
         <button 
           onclick="showNoteDialog()" 
           id="note-btn"
-          class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-4 py-2 rounded-lg transition"
+          class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-4 py-2 rounded-lg transition flex items-center gap-2 mx-auto"
           style="display: none;"
         >
-          <i class="fas fa-sticky-note"></i> View Note
+          <i class="fas fa-sticky-note"></i>
+          <span>View Note</span>
         </button>
       </div>
 
@@ -192,26 +195,29 @@
           <div class="flex space-x-4">
             <button 
               onclick="submitAnswer(false)" 
-              class="flex-1 bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition font-semibold"
+              class="flex-1 bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition font-semibold flex items-center justify-center gap-2"
               id="incorrect-btn"
             >
-              <i class="fas fa-times-circle"></i> Incorrect
+              <i class="fas fa-times-circle"></i>
+              <span>Incorrect</span>
             </button>
             <button 
               onclick="submitAnswer(true)" 
-              class="flex-1 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition font-semibold"
+              class="flex-1 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition font-semibold flex items-center justify-center gap-2"
               id="correct-btn"
             >
-              <i class="fas fa-check-circle"></i> Correct
+              <i class="fas fa-check-circle"></i>
+              <span>Correct</span>
             </button>
           </div>
         <% } else { %>
           <div class="flex space-x-4">
             <button 
               onclick="nextCard()" 
-              class="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition font-semibold"
+              class="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition font-semibold flex items-center justify-center gap-2"
             >
-              <i class="fas fa-arrow-right"></i> Next Card
+              <i class="fas fa-arrow-right"></i>
+              <span>Next Card</span>
             </button>
           </div>
         <% } %>
@@ -222,25 +228,28 @@
         <button 
           onclick="previousCard()" 
           id="prev-btn"
-          class="bg-gray-500 text-white py-3 px-6 rounded-lg hover:bg-gray-600 transition font-semibold"
+          class="bg-gray-500 text-white py-3 px-6 rounded-lg hover:bg-gray-600 transition font-semibold flex items-center gap-2"
         >
-          <i class="fas fa-arrow-left"></i> Previous
+          <i class="fas fa-arrow-left"></i>
+          <span>Previous</span>
         </button>
         <button 
           onclick="checkMultiChoiceAnswer()" 
           id="mc-check-answer-btn"
-          class="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          class="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           disabled
           style="display: none;"
         >
-          <i class="fas fa-check-circle"></i> Check Answer
+          <i class="fas fa-check-circle"></i>
+          <span>Check Answer</span>
         </button>
         <button 
           onclick="nextCard()" 
           id="next-btn"
-          class="bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition font-semibold"
+          class="bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition font-semibold flex items-center gap-2"
         >
-          <i class="fas fa-arrow-right"></i> Next
+          <i class="fas fa-arrow-right"></i>
+          <span>Next</span>
         </button>
       </div>
     </div>
@@ -1928,9 +1937,18 @@
   /* Show exit button in progress section when in focus mode */
   body.focus-mode-active #exit-focus-btn {
     display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
   
-  /* Hide quick actions section (star + focus button) in focus mode */
+  /* Ensure all buttons have proper alignment */
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Quick Actions Styling (Star + Focus buttons) */
   body.focus-mode-active #quick-actions {
     display: none !important;
   }
