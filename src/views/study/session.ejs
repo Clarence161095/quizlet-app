@@ -191,26 +191,23 @@
         <% } %>
       </div>
 
-      <!-- Multi-Choice Check Answer Button (for multi-choice mode) -->
-      <div id="mc-check-answer-container" class="mt-4" style="display: none;">
-        <button 
-          onclick="checkMultiChoiceAnswer()" 
-          id="mc-check-answer-btn"
-          class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled
-        >
-          <i class="fas fa-check-circle"></i> Check Answer
-        </button>
-      </div>
-
-      <!-- Navigation Buttons (shown after answering) -->
-      <div id="navigation-buttons" class="flex justify-between gap-4 mt-4" style="display: none;">
+      <!-- Navigation Buttons (includes Check Answer for multi-choice) -->
+      <div id="navigation-buttons" class="flex justify-center gap-4 mt-4" style="display: none;">
         <button 
           onclick="previousCard()" 
           id="prev-btn"
           class="bg-gray-500 text-white py-3 px-6 rounded-lg hover:bg-gray-600 transition font-semibold"
         >
           <i class="fas fa-arrow-left"></i> Previous
+        </button>
+        <button 
+          onclick="checkMultiChoiceAnswer()" 
+          id="mc-check-answer-btn"
+          class="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled
+          style="display: none;"
+        >
+          <i class="fas fa-check-circle"></i> Check Answer
         </button>
         <button 
           onclick="nextCard()" 
@@ -691,22 +688,31 @@
     selectedAnswer = null;
     selectedAnswers = []; // Reset selected answers array for new card
     
-    // Reset button visibility
-    document.getElementById('navigation-buttons').style.display = 'none';
-    
     // Check if multi-choice mode and card supports it
     const isMultiChoice = studyMode === 'multichoice' && isMultiChoiceCard(card);
     
     // Show/hide buttons based on mode
     const answerButtonsSection = document.getElementById('answer-buttons-section');
-    const mcCheckContainer = document.getElementById('mc-check-answer-container');
+    const navigationButtons = document.getElementById('navigation-buttons');
+    const mcCheckBtn = document.getElementById('mc-check-answer-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
     
     if (isMultiChoice) {
-      answerButtonsSection.style.display = 'none'; // Hide Correct/Incorrect buttons
-      mcCheckContainer.style.display = 'block'; // Show Check Answer button
+      // Multi-choice mode: Hide answer buttons, show navigation with Check Answer
+      answerButtonsSection.style.display = 'none';
+      navigationButtons.style.display = 'flex';
+      if (mcCheckBtn) {
+        mcCheckBtn.style.display = 'block';
+        mcCheckBtn.disabled = true;
+      }
+      if (prevBtn) prevBtn.style.display = 'block';
+      if (nextBtn) nextBtn.style.display = 'block';
     } else {
-      answerButtonsSection.style.display = 'block'; // Show normal buttons
-      mcCheckContainer.style.display = 'none'; // Hide Check Answer button
+      // Flashcard mode: Show answer buttons, hide navigation
+      answerButtonsSection.style.display = 'block';
+      navigationButtons.style.display = 'none';
+      if (mcCheckBtn) mcCheckBtn.style.display = 'none';
     }
     
     // Important: Reset flip state BEFORE updating content
@@ -818,11 +824,14 @@
     
     document.getElementById('word-content').innerHTML = html;
     
-    // Show Check Answer button in the navigation area
+    // Reset Check Answer button
     const checkAnswerBtn = document.getElementById('mc-check-answer-btn');
     if (checkAnswerBtn) {
       checkAnswerBtn.disabled = true;
       checkAnswerBtn.style.display = 'block';
+      checkAnswerBtn.classList.remove('bg-green-500', 'bg-red-500');
+      checkAnswerBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+      checkAnswerBtn.innerHTML = '<i class="fas fa-check-circle"></i> Check Answer';
     }
     
     // Show correct answer on back (for flip mode)
@@ -918,7 +927,7 @@
       option.classList.remove('selected');
     });
     
-    // Update check button to show result
+    // Update check button to show result and hide it
     const mcCheckBtn = document.getElementById('mc-check-answer-btn');
     if (mcCheckBtn) {
       mcCheckBtn.disabled = true;
@@ -927,16 +936,12 @@
       mcCheckBtn.innerHTML = isCorrect ? 
         '<i class="fas fa-check-circle"></i> Correct!' : 
         '<i class="fas fa-times-circle"></i> Incorrect';
-    }
-    
-    // Hide check answer button and show navigation buttons
-    setTimeout(() => {
-      document.getElementById('mc-check-answer-container').style.display = 'none';
-      document.getElementById('navigation-buttons').style.display = 'flex';
       
-      // Update navigation buttons visibility
-      updateNavigationButtons();
-    }, 1500); // Show result for 1.5 seconds before showing navigation
+      // Hide check button after showing result
+      setTimeout(() => {
+        mcCheckBtn.style.display = 'none';
+      }, 1500);
+    }
     
     // Submit answer to server if long-term study
     if (studyType === 'long_term') {
@@ -1061,22 +1066,15 @@
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     
+    const isFirst = currentIndex === 0;
+    const isLast = currentIndex >= filteredFlashcards.length - 1;
+    
     if (prevBtn) {
-      // Hide prev button if at first card of filtered set
-      if (currentIndex === 0) {
-        prevBtn.style.display = 'none';
-      } else {
-        prevBtn.style.display = 'block';
-      }
+      prevBtn.style.display = isFirst ? 'none' : 'block';
     }
     
     if (nextBtn) {
-      // Hide next button if at last card of filtered set
-      if (currentIndex >= filteredFlashcards.length - 1) {
-        nextBtn.style.display = 'none';
-      } else {
-        nextBtn.style.display = 'block';
-      }
+      nextBtn.style.display = isLast ? 'none' : 'block';
     }
   }
 
@@ -1670,17 +1668,12 @@
 
   /* Navigation buttons styling */
   #navigation-buttons {
-    justify-content: space-between;
+    justify-content: center;
   }
 
-  /* When only Previous button visible, align left */
-  #navigation-buttons #prev-btn:only-child {
-    margin-right: auto;
-  }
-
-  /* When only Next button visible, align right */
-  #navigation-buttons #next-btn:last-child:not(:first-child) {
-    margin-left: auto;
+  /* Ensure buttons stay in flex layout */
+  #navigation-buttons button {
+    flex-shrink: 0;
   }
   
   /* Focus Mode - Centered, Clean Layout with 98vw/98vh limit */
@@ -1913,26 +1906,6 @@
     font-weight: 600 !important;
   }
 
-  /* Multi-Choice Check Answer button in Focus Mode - Fixed at bottom */
-  body.focus-mode-active #mc-check-answer-container {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    padding: 0.5rem !important;
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(10px) !important;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
-    z-index: 50 !important;
-    margin: 0 !important;
-  }
-
-  body.focus-mode-active #mc-check-answer-btn {
-    font-size: clamp(0.875rem, 2.5vw, 1rem) !important;
-    padding: 0.75rem 1rem !important;
-    font-weight: 600 !important;
-  }
-
   /* Navigation buttons in Focus Mode - Fixed at bottom */
   body.focus-mode-active #navigation-buttons {
     position: fixed !important;
@@ -2068,21 +2041,6 @@
     }
     
     body.focus-mode-active #answer-buttons-section button {
-      font-size: 1.125rem !important;
-      padding: 1rem 2rem !important;
-    }
-
-    /* Multi-Choice Check Answer button on desktop */
-    body.focus-mode-active #mc-check-answer-container {
-      padding: 1rem 2rem !important;
-      max-width: 1200px !important;
-      margin: 0 auto !important;
-      left: 50% !important;
-      right: auto !important;
-      transform: translateX(-50%) !important;
-    }
-
-    body.focus-mode-active #mc-check-answer-btn {
       font-size: 1.125rem !important;
       padding: 1rem 2rem !important;
     }
