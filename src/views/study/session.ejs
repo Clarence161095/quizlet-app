@@ -1,4 +1,4 @@
-<div class="max-w-4xl mx-auto" id="study-container">
+<div class="max-w-4xl mx-auto px-4" id="study-container">
   <div class="mb-6" id="header-section">
     <div class="flex justify-between items-start">
       <div>
@@ -120,12 +120,12 @@
 
       <!-- Flashcard -->
             <!-- Flashcard -->
-      <div id="flashcard-container" class="mb-6" style="min-height: 350px;">
+      <div id="flashcard-container" class="mb-1" style="min-height: 350px;">
         <div class="flashcard">
           <div class="flashcard-inner">
             <div class="flashcard-front bg-blue-50 border-2 border-blue-200 rounded-lg">
-              <div class="text-center w-full p-8 h-full flex flex-col">
-                <p class="text-sm text-gray-500 mb-4 flex-shrink-0">
+              <div class="text-center w-full pt-8 h-full flex flex-col">
+                <p class="text-sm text-gray-500 mb-1 flex-shrink-0">
                   <i class="fas fa-sync-alt"></i> Click to flip
                 </p>
                 <div id="word-content" class="text-2xl font-semibold text-gray-800 overflow-y-auto flex-1">
@@ -135,8 +135,8 @@
             </div>
             
             <div class="flashcard-back bg-green-50 border-2 border-green-200 rounded-lg">
-              <div class="text-center w-full p-8 h-full flex flex-col">
-                <p class="text-sm text-gray-500 mb-4 flex-shrink-0">
+              <div class="text-center w-full pt-8 h-full flex flex-col">
+                <p class="text-sm text-gray-500 mb-1 flex-shrink-0">
                   <i class="fas fa-sync-alt"></i> Click to flip
                 </p>
                 <div id="definition-content" class="text-xl text-gray-800 overflow-y-auto flex-1">
@@ -191,6 +191,24 @@
         <% } %>
       </div>
 
+      <!-- Navigation Buttons (shown after answering) -->
+      <div id="navigation-buttons" class="flex space-x-4 mt-4" style="display: none;">
+        <button 
+          onclick="previousCard()" 
+          id="prev-btn"
+          class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <i class="fas fa-arrow-left"></i> Previous
+        </button>
+        <button 
+          onclick="nextCard()" 
+          id="next-btn"
+          class="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition font-semibold"
+        >
+          <i class="fas fa-arrow-right"></i> Next
+        </button>
+      </div>
+
       <!-- Star Toggle -->
       <div class="mt-4 text-center" id="star-section">
         <button 
@@ -205,12 +223,12 @@
 
     <!-- Card Info -->
     <div class="bg-gray-50 p-4 rounded-lg text-sm text-gray-600">
-      <div class="flex justify-between">
-        <span>
+      <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+        <span class="text-xs md:text-sm">
           <i class="fas fa-keyboard"></i> 
           <strong>Shortcuts:</strong> Space to flip, ← for Incorrect, → for Correct
         </span>
-        <span id="card-info"></span>
+        <span id="card-info" class="text-xs md:text-sm"></span>
       </div>
     </div>
   <% } %>
@@ -253,6 +271,7 @@
   
   // Load study mode from localStorage (default: multichoice)
   let studyMode = localStorage.getItem(modeStorageKey) || 'multichoice';
+  let selectedAnswers = []; // Array to store multiple selected answers
 
   // Detect if flashcard is multi-choice
   function isMultiChoiceCard(card) {
@@ -447,13 +466,14 @@
       // Enter Focus Mode - maximize content, minimize chrome
       document.body.classList.add('focus-mode-active');
       
-      // Hide ALL UI except flashcard content
+      // Hide ALL UI except flashcard content and answer buttons
       if (header) header.style.display = 'none';
       if (stats) stats.style.display = 'none';
       if (modeSelector) modeSelector.style.display = 'none';
       if (filterInfo) filterInfo.style.display = 'none';
       if (progressSection) progressSection.style.display = 'none';
-      if (answerButtons) answerButtons.style.display = 'none';
+      // Keep answer buttons visible in focus mode for flashcard interaction
+      // if (answerButtons) answerButtons.style.display = 'none';
       if (noteSection) noteSection.style.display = 'none';
       if (starSection) starSection.style.display = 'none';
       if (cardInfo) cardInfo.style.display = 'none';
@@ -465,16 +485,21 @@
         flashcardContainer.style.height = 'calc(100vh - 60px)';
       }
       
-      // Update button to Exit
+      // Update button to Exit - ALWAYS VISIBLE
       btn.innerHTML = '<i class="fas fa-times"></i> Exit';
       btn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
-      btn.classList.add('bg-red-500', 'hover:bg-red-600', 'fixed', 'top-4', 'right-4', 'z-50', 'shadow-lg');
+      btn.classList.add('bg-red-500', 'hover:bg-red-600');
+      btn.style.position = 'fixed';
+      btn.style.top = '0.5rem';
+      btn.style.right = '0.5rem';
+      btn.style.zIndex = '9999';
+      btn.style.display = 'flex';
       
       // Show temporary hint
       const hint = document.createElement('div');
       hint.id = 'focus-hint';
       hint.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white px-6 py-3 rounded-lg text-sm z-40 shadow-lg';
-      hint.innerHTML = '<i class="fas fa-compress-alt"></i> Focus Mode Active - Content Only';
+      hint.innerHTML = '<i class="fas fa-compress-alt"></i> Focus Mode Active - Press ESC or click Exit';
       document.body.appendChild(hint);
       
       setTimeout(() => {
@@ -511,7 +536,11 @@
       // Restore button
       btn.innerHTML = '<i class="fas fa-compress-alt"></i> Focus';
       btn.classList.add('bg-purple-600', 'hover:bg-purple-700');
-      btn.classList.remove('bg-red-500', 'hover:bg-red-600', 'fixed', 'top-4', 'right-4', 'z-50', 'shadow-lg');
+      btn.classList.remove('bg-red-500', 'hover:bg-red-600');
+      btn.style.position = '';
+      btn.style.top = '';
+      btn.style.right = '';
+      btn.style.zIndex = '';
       
       // Remove hint
       const hint = document.getElementById('focus-hint');
@@ -648,6 +677,11 @@
     const card = filteredFlashcards[index];
     currentIndex = index;
     selectedAnswer = null;
+    selectedAnswers = []; // Reset selected answers array for new card
+    
+    // Reset button visibility
+    document.getElementById('answer-buttons-section').style.display = 'block';
+    document.getElementById('navigation-buttons').style.display = 'none';
     
     // Check if multi-choice mode and card supports it
     const isMultiChoice = studyMode === 'multichoice' && isMultiChoiceCard(card);
@@ -731,23 +765,30 @@
     const correctMatch = card.definition.match(/Correct:\s*([A-Z,\s]+)/i);
     const correctAnswers = correctMatch ? correctMatch[1].split(',').map(a => a.trim()) : [];
     
-    // Build HTML for question - simplified
+    // Build HTML - Quizlet-style with numbered circles
     let html = `<div class="mc-container">
+      <div class="mc-header">
+        <span class="mc-label">Term</span>
+      </div>
       <p class="mc-question">${question}</p>
+      <div class="mc-instruction">Choose an answer</div>
       <div class="mc-options">`;
     
-    options.forEach(opt => {
+    options.forEach((opt, index) => {
       html += `
-        <label class="mc-option" data-answer="${opt.letter}">
-          <input type="radio" name="answer" value="${opt.letter}">
-          <span><strong>${opt.letter}.</strong> ${opt.text}</span>
-        </label>`;
+        <div class="mc-option" data-answer="${opt.letter}">
+          <div class="mc-number">${index + 1}</div>
+          <div class="mc-text">${opt.text}</div>
+        </div>`;
     });
     
     html += `
       </div>
       <button onclick="checkMultiChoiceAnswer()" id="check-answer-btn" class="mc-btn" disabled>
         <i class="fas fa-check-circle"></i> Check Answer
+      </button>
+      <button onclick="skipQuestion()" class="mc-btn-secondary">
+        <i class="fas fa-forward"></i> Don't know?
       </button>
     </div>`;
     
@@ -757,48 +798,76 @@
     document.getElementById('definition-content').innerHTML = 
       `<div class="text-left"><p class="text-lg mb-2">Correct Answer:</p><p class="text-2xl font-bold text-green-600">${correctAnswers.join(', ')}</p></div>`;
     
-    // Add event listeners to options
+    // Add event listeners to options - Allow multiple selection
     document.querySelectorAll('.mc-option').forEach(option => {
       option.addEventListener('click', function() {
-        document.querySelectorAll('.mc-option').forEach(o => {
-          o.classList.remove('selected');
-        });
-        this.classList.add('selected');
-        this.querySelector('input').checked = true;
-        selectedAnswer = this.dataset.answer;
-        document.getElementById('check-answer-btn').disabled = false;
+        const answer = this.dataset.answer;
+        
+        // Toggle selection
+        if (this.classList.contains('selected')) {
+          // Deselect
+          this.classList.remove('selected');
+          selectedAnswers = selectedAnswers.filter(a => a !== answer);
+        } else {
+          // Select
+          this.classList.add('selected');
+          selectedAnswers.push(answer);
+        }
+        
+        // Enable check button if at least one answer is selected
+        document.getElementById('check-answer-btn').disabled = selectedAnswers.length === 0;
       });
     });
   }
+  
+  function skipQuestion() {
+    // Skip to next card without answering
+    if (studyType === 'long_term') {
+      submitAnswer(false); // Mark as incorrect
+    } else {
+      nextCard();
+    }
+  }
 
   function checkMultiChoiceAnswer() {
-    if (!selectedAnswer) return;
+    if (selectedAnswers.length === 0) return;
     
     const card = filteredFlashcards[currentIndex];
     const correctMatch = card.definition.match(/Correct:\s*([A-Z,\s]+)/i);
     const correctAnswers = correctMatch ? correctMatch[1].split(',').map(a => a.trim()) : [];
     
-    const isCorrect = correctAnswers.includes(selectedAnswer);
+    // Sort both arrays to compare
+    const sortedSelected = [...selectedAnswers].sort();
+    const sortedCorrect = [...correctAnswers].sort();
+    
+    // Check if arrays are equal (all correct answers selected, no wrong answers)
+    const isCorrect = sortedSelected.length === sortedCorrect.length && 
+                      sortedSelected.every((val, index) => val === sortedCorrect[index]);
     
     // Disable all options (prevent changing answer)
     document.querySelectorAll('.mc-option').forEach(option => {
       option.style.pointerEvents = 'none';
-      option.classList.remove('selected');
     });
     
-    // Highlight answers
+    // Highlight answers with checkmark/cross in the number circle
     document.querySelectorAll('.mc-option').forEach(option => {
       const letter = option.dataset.answer;
-      const spanEl = option.querySelector('span');
-      const originalContent = spanEl.innerHTML;
+      const numberEl = option.querySelector('.mc-number');
+      const isSelected = selectedAnswers.includes(letter);
+      const isCorrectAnswer = correctAnswers.includes(letter);
       
-      if (correctAnswers.includes(letter)) {
+      if (isCorrectAnswer) {
+        // Correct answer - always show green checkmark
         option.classList.add('correct');
-        spanEl.innerHTML = originalContent + ' <i class="fas fa-check-circle"></i>';
-      } else if (letter === selectedAnswer && !isCorrect) {
+        numberEl.innerHTML = '<i class="fas fa-check"></i>';
+      } else if (isSelected && !isCorrectAnswer) {
+        // Wrong answer that user selected - show red X
         option.classList.add('incorrect');
-        spanEl.innerHTML = originalContent + ' <i class="fas fa-times-circle"></i>';
+        numberEl.innerHTML = '<i class="fas fa-times"></i>';
       }
+      
+      // Remove selected state after checking
+      option.classList.remove('selected');
     });
     
     // Update check button to show result
@@ -810,14 +879,21 @@
       '<i class="fas fa-check-circle"></i> Correct!' : 
       '<i class="fas fa-times-circle"></i> Incorrect';
     
-    // Auto submit answer and move to next card
-    setTimeout(() => {
-      if (studyType === 'long_term') {
-        submitAnswer(isCorrect);
-      } else {
-        nextCard();
-      }
-    }, 2000); // 2 seconds to see the result
+    // Hide skip button
+    const skipBtn = document.querySelector('.mc-btn-secondary');
+    if (skipBtn) skipBtn.style.display = 'none';
+    
+    // Show navigation buttons after answering
+    document.getElementById('answer-buttons-section').style.display = 'none';
+    document.getElementById('navigation-buttons').style.display = 'flex';
+    
+    // Update prev button state
+    updateNavigationButtons();
+    
+    // Submit answer to server if long-term study
+    if (studyType === 'long_term') {
+      submitAnswerToServer(isCorrect);
+    }
   }
 
   function formatContent(content) {
@@ -839,6 +915,11 @@
   }
 
   function flipCard() {
+    // Don't flip if in multi-choice mode
+    if (studyMode === 'multichoice') {
+      return;
+    }
+    
     const flashcard = document.querySelector('.flashcard');
     if (flashcard) {
       flashcard.classList.toggle('flipped');
@@ -874,6 +955,16 @@
   }
 
   function submitAnswer(isCorrect) {
+    // Hide answer buttons, show navigation
+    document.getElementById('answer-buttons-section').style.display = 'none';
+    document.getElementById('navigation-buttons').style.display = 'flex';
+    updateNavigationButtons();
+    
+    // Submit to server
+    submitAnswerToServer(isCorrect);
+  }
+
+  function submitAnswerToServer(isCorrect) {
     const card = filteredFlashcards[currentIndex];
 
     // Send answer to server
@@ -906,14 +997,23 @@
       
       // Update stats
       updateStats();
-      
-      // Move to next card
-      nextCard();
     })
     .catch(error => {
       console.error('Error:', error);
-      nextCard(); // Continue anyway
     });
+  }
+
+  function previousCard() {
+    if (currentIndex > 0) {
+      loadCard(currentIndex - 1);
+    }
+  }
+
+  function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prev-btn');
+    if (prevBtn) {
+      prevBtn.disabled = currentIndex === 0;
+    }
   }
 
   function toggleStar() {
@@ -1008,17 +1108,33 @@
     }
   }
   
-  // Keyboard shortcut for fullscreen (F key)
+  // Keyboard shortcut for fullscreen (F key) and Focus Mode (ESC to exit)
   document.addEventListener('keydown', function(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     
     if (e.key === 'f' || e.key === 'F') {
       toggleFullscreen();
     }
+    
+    // ESC to exit Focus Mode
+    if (e.key === 'Escape' && isFocusMode) {
+      toggleFocusMode();
+    }
   });
 </script>
 
 <style>
+  /* Container styling - prevent overflow */
+  #study-container {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Ensure all child elements respect container padding */
+  #study-container > * {
+    box-sizing: border-box;
+  }
+  
   /* Flashcard 3D Flip Animation */
   .flashcard {
     perspective: 1000px;
@@ -1053,6 +1169,12 @@
     border-radius: 0.5rem;
   }
   
+  /* Hide overflow when containing multi-choice */
+  .flashcard-front:has(.mc-container),
+  .flashcard-back:has(.mc-container) {
+    overflow: hidden;
+  }
+  
   .flashcard-front {
     background-color: #dbeafe;
   }
@@ -1067,6 +1189,20 @@
   #definition-content {
     white-space: pre-wrap;
     word-wrap: break-word;
+  }
+  
+  /* Hide scrollbar for multi-choice content */
+  #word-content:has(.mc-container) {
+    overflow: hidden !important;
+  }
+  
+  #word-content:has(.mc-container)::-webkit-scrollbar {
+    display: none !important;
+  }
+  
+  #word-content:has(.mc-container) {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
   }
   
   .flashcard:hover .flashcard-front {
@@ -1118,43 +1254,122 @@
     max-height: calc(98vh - 200px);
   }
   
-  /* Multi-Choice Styles - Clean and Simple */
+  /* Hide scrollbar for multi-choice in fullscreen */
+  #study-container.fullscreen-mode #word-content:has(.mc-container) {
+    overflow: hidden !important;
+  }
+  
+  /* Multi-Choice Styles - Quizlet-inspired */
   .mc-container {
     text-align: left;
     width: 100%;
+    padding: 0.75rem;
+    overflow-y: auto;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .mc-header {
+    margin-bottom: 0.75rem;
+    flex-shrink: 0;
+  }
+  
+  .mc-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #6b7280;
+    letter-spacing: 0.05em;
   }
   
   .mc-question {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 600;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     line-height: 1.4;
+    color: #1f2937;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    flex-shrink: 0;
+  }
+  
+  .mc-instruction {
+    font-size: 0.8125rem;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+    flex-shrink: 0;
   }
   
   .mc-options {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+  }
+  
+  /* Desktop styles */
+  @media (min-width: 768px) {
+    .mc-container {
+      padding: 1rem;
+    }
+    
+    .mc-header {
+      margin-bottom: 1rem;
+    }
+    
+    .mc-label {
+      font-size: 0.875rem;
+    }
+    
+    .mc-question {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .mc-instruction {
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+    
+    .mc-options {
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
   }
   
   .mc-option {
     display: flex;
-    align-items: flex-start;
-    padding: 1rem;
-    border: 2px solid #d1d5db;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
     border-radius: 0.5rem;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    min-height: 3.5rem;
+  }
+  
+  @media (min-width: 768px) {
+    .mc-option {
+      padding: 1rem 1.25rem;
+      border-radius: 0.75rem;
+      min-height: 4rem;
+    }
   }
   
   .mc-option:hover {
-    background: #eff6ff;
-    border-color: #93c5fd;
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    transform: translateY(-2px);
   }
   
   .mc-option.selected {
     border-color: #3b82f6;
-    background: #dbeafe;
+    background: #eff6ff;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
   }
   
   .mc-option.correct {
@@ -1169,77 +1384,189 @@
     cursor: not-allowed;
   }
   
-  .mc-option input {
-    margin-top: 0.25rem;
+  .mc-number {
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+    color: #4b5563;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.875rem;
     margin-right: 0.75rem;
-    width: 1rem;
-    height: 1rem;
-    flex-shrink: 0;
+    transition: all 0.2s ease;
   }
   
-  .mc-option span {
+  @media (min-width: 768px) {
+    .mc-number {
+      width: 2.5rem;
+      height: 2.5rem;
+      min-width: 2.5rem;
+      font-size: 1.125rem;
+      margin-right: 1rem;
+    }
+  }
+  
+  .mc-option:hover .mc-number {
+    background: #3b82f6;
+    color: white;
+  }
+  
+  .mc-option.selected .mc-number {
+    background: #3b82f6;
+    color: white;
+  }
+  
+  .mc-option.correct .mc-number {
+    background: #10b981;
+    color: white;
+    font-size: 1rem;
+  }
+  
+  @media (min-width: 768px) {
+    .mc-option.correct .mc-number,
+    .mc-option.incorrect .mc-number {
+      font-size: 1.25rem;
+    }
+  }
+  
+  .mc-option.incorrect .mc-number {
+    background: #ef4444;
+    color: white;
+    font-size: 1rem;
+  }
+  
+  .mc-text {
     flex: 1;
-    font-size: 1.125rem;
+    font-size: 0.9375rem;
     line-height: 1.5;
+    color: #1f2937;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
   
-  .mc-option.correct .fa-check-circle {
-    color: #10b981;
-    margin-left: 0.5rem;
-  }
-  
-  .mc-option.incorrect .fa-times-circle {
-    color: #ef4444;
-    margin-left: 0.5rem;
+  @media (min-width: 768px) {
+    .mc-text {
+      font-size: 1.125rem;
+    }
   }
   
   .mc-btn {
-    margin-top: 1.5rem;
     width: 100%;
     background: #3b82f6;
     color: white;
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem 1.25rem;
     border-radius: 0.5rem;
     font-weight: 600;
+    font-size: 0.9375rem;
     transition: all 0.2s;
     border: none;
     cursor: pointer;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+    flex-shrink: 0;
+  }
+  
+  @media (min-width: 768px) {
+    .mc-btn {
+      padding: 0.875rem 1.5rem;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
   }
   
   .mc-btn:hover:not(:disabled) {
     background: #2563eb;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+    transform: translateY(-1px);
   }
   
   .mc-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
+  }
+  
+  .mc-btn-secondary {
+    width: 100%;
+    background: transparent;
+    color: #6b7280;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    border: 2px solid #e5e7eb;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  
+  @media (min-width: 768px) {
+    .mc-btn-secondary {
+      padding: 0.875rem 1.5rem;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+    }
+  }
+  
+  .mc-btn-secondary:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
   }
   
   .mc-btn-correct {
-    margin-top: 1.5rem;
     width: 100%;
     background: #10b981;
     color: white;
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem 1.25rem;
     border-radius: 0.5rem;
     font-weight: 600;
+    font-size: 0.9375rem;
     border: none;
     cursor: default;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+    flex-shrink: 0;
+  }
+  
+  @media (min-width: 768px) {
+    .mc-btn-correct {
+      padding: 0.875rem 1.5rem;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
   }
   
   .mc-btn-incorrect {
-    margin-top: 1.5rem;
     width: 100%;
     background: #ef4444;
     color: white;
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem 1.25rem;
     border-radius: 0.5rem;
     font-weight: 600;
+    font-size: 0.9375rem;
     border: none;
     cursor: default;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+    flex-shrink: 0;
   }
   
-  /* Focus Mode - Content Only */
+  @media (min-width: 768px) {
+    .mc-btn-incorrect {
+      padding: 0.875rem 1.5rem;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+  }
+  
+  /* Focus Mode - Centered, Clean Layout with 98vw/98vh limit */
   body.focus-mode-active {
     overflow: hidden;
     margin: 0;
@@ -1247,15 +1574,20 @@
   }
   
   body.focus-mode-active #study-container {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
     padding: 0 !important;
     margin: 0 !important;
-    max-width: 100vw !important;
+    max-width: none !important;
     width: 100vw !important;
     height: 100vh !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    background: #f3f4f6;
+    background: #f3f4f6 !important;
   }
   
   body.focus-mode-active #flashcard-section {
@@ -1264,162 +1596,400 @@
     margin: 0 !important;
     box-shadow: none !important;
     border-radius: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    max-width: 100vw !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
   }
   
   body.focus-mode-active #flashcard-container {
-    width: 100vw !important;
-    height: 100vh !important;
-    max-width: 100vw !important;
-    max-height: 100vh !important;
-    margin: 0 !important;
+    width: 98vw !important;
+    max-width: 98vw !important;
+    height: 98vh !important;
+    max-height: 98vh !important;
+    margin: 0 auto !important;
     padding: 0 !important;
+    padding-bottom: 4.5rem !important; /* Space for answer buttons at bottom */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
   }
   
   body.focus-mode-active .flashcard {
     width: 100% !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
     margin: 0 !important;
+    padding: 0 !important;
     box-shadow: none !important;
+  }
+  
+  body.focus-mode-active .flashcard-inner {
+    width: 100% !important;
+    height: 100% !important;
   }
   
   body.focus-mode-active .flashcard-front,
   body.focus-mode-active .flashcard-back {
-    padding: 1rem 1.5rem !important;
+    width: 100% !important;
     height: 100% !important;
+    padding: 0.5rem !important; /* Smaller padding on mobile */
+    margin: 0 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    overflow: hidden !important;
   }
   
-  /* Auto-scale text in focus mode - NO SCROLLBARS, fit everything */
+  /* Exit button - Always visible in Focus Mode */
+  body.focus-mode-active #focus-btn {
+    position: fixed !important;
+    top: 0.25rem !important;
+    right: 0.25rem !important;
+    z-index: 9999 !important;
+    background: #ef4444 !important;
+    color: white !important;
+    padding: 0.5rem 0.875rem !important;
+    font-size: 0.75rem !important;
+    border-radius: 0.375rem !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.375rem !important;
+  }
+  
+  /* Content scaling - Mobile optimized for 98% display */
   body.focus-mode-active #word-content {
-    font-size: clamp(1rem, 2.5vw, 2rem) !important;
-    line-height: 1.3 !important;
+    font-size: clamp(0.75rem, 2.5vw, 1.25rem) !important; /* Smaller on mobile */
+    line-height: 1.4 !important;
     width: 100% !important;
+    max-width: 100% !important;
     height: 100% !important;
-    max-height: 100vh !important;
+    max-height: 100% !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    text-align: left !important;
-    overflow: hidden !important;
+    text-align: center !important; /* Center text on mobile */
+    overflow-y: auto !important;
     padding: 0.5rem !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
   }
   
   body.focus-mode-active #definition-content {
-    font-size: clamp(1.2rem, 3vw, 2.5rem) !important;
-    line-height: 1.3 !important;
+    font-size: clamp(0.875rem, 3vw, 1.5rem) !important; /* Smaller on mobile */
+    line-height: 1.4 !important;
     width: 100% !important;
+    max-width: 100% !important;
     height: 100% !important;
+    max-height: 100% !important;
     display: flex !important;
+    flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
     text-align: center !important;
-    overflow: hidden !important;
+    overflow-y: auto !important;
     padding: 0.5rem !important;
-  }
-  
-  /* Focus mode question text - compact */
-  body.focus-mode-active .mc-question {
-    font-size: clamp(1.2rem, 2.8vw, 2.2rem) !important;
-    margin-bottom: 0.8rem !important;
-    line-height: 1.25 !important;
-  }
-  
-  /* Focus mode for multi-choice - compact to fit all options */
-  body.focus-mode-active .mc-option {
-    font-size: clamp(0.9rem, 2vw, 1.4rem) !important;
-    padding: 0.6rem 1rem !important;
     margin: 0 !important;
-    border-width: 2px !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Multi-choice in focus mode - Mobile optimized */
+  body.focus-mode-active .mc-header {
+    display: none;
+  }
+  
+  body.focus-mode-active .mc-container {
+    padding: 0.5rem !important; /* Minimal padding on mobile */
+    margin: 0 auto !important; /* Center horizontally */
+    max-height: 100% !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important; /* Center content */
+    justify-content: center !important; /* Center vertically */
+  }
+  
+  body.focus-mode-active .mc-question {
+    font-size: clamp(0.875rem, 3vw, 1.5rem) !important; /* Smaller on mobile */
+    margin-bottom: 0.5rem !important;
+    line-height: 1.3 !important;
+    flex-shrink: 0 !important;
+    text-align: center !important; /* Center text */
+    width: 100% !important;
+  }
+  
+  body.focus-mode-active .mc-instruction {
+    font-size: clamp(0.625rem, 1.5vw, 0.875rem) !important; /* Smaller on mobile */
+    margin-bottom: 0.5rem !important;
+    flex-shrink: 0 !important;
+    text-align: center !important; /* Center text */
   }
   
   body.focus-mode-active .mc-options {
-    gap: 0.4rem !important;
+    gap: 0.375rem !important; /* Tighter gap on mobile */
+    margin-bottom: 0.625rem !important;
+    flex-shrink: 0 !important;
+    width: 100% !important; /* Full width for options */
   }
   
-  body.focus-mode-active .mc-option strong {
-    font-size: clamp(1rem, 2.2vw, 1.6rem) !important;
+  body.focus-mode-active .mc-option {
+    padding: 0.5rem 0.625rem !important; /* Compact on mobile */
+    min-height: auto !important;
+    width: 100% !important; /* Full width options */
   }
   
-  body.focus-mode-active .mc-option input {
-    width: 1.1rem !important;
-    height: 1.1rem !important;
-    margin-right: 0.7rem !important;
+  body.focus-mode-active .mc-number {
+    width: 1.5rem !important; /* Smaller on mobile */
+    height: 1.5rem !important;
+    min-width: 1.5rem !important;
+    font-size: 0.75rem !important;
+    margin-right: 0.5rem !important;
   }
   
-  body.focus-mode-active .mc-option span {
-    font-size: clamp(0.9rem, 2vw, 1.4rem) !important;
+  body.focus-mode-active .mc-option.correct .mc-number,
+  body.focus-mode-active .mc-option.incorrect .mc-number {
+    font-size: 0.8125rem !important;
+  }
+  
+  body.focus-mode-active .mc-text {
+    font-size: clamp(0.75rem, 2.5vw, 1rem) !important; /* Smaller on mobile */
     line-height: 1.3 !important;
-  }
-  
-  body.focus-mode-active .mc-option .fa-check-circle,
-  body.focus-mode-active .mc-option .fa-times-circle {
-    font-size: clamp(1rem, 2vw, 1.4rem) !important;
   }
   
   body.focus-mode-active .mc-btn,
   body.focus-mode-active .mc-btn-correct,
-  body.focus-mode-active .mc-btn-incorrect {
-    font-size: clamp(1rem, 2.2vw, 1.5rem) !important;
-    padding: 0.8rem 1.5rem !important;
-    margin-top: 1rem !important;
+  body.focus-mode-active .mc-btn-incorrect,
+  body.focus-mode-active .mc-btn-secondary {
+    font-size: clamp(0.75rem, 2vw, 0.9375rem) !important; /* Smaller on mobile */
+    padding: 0.625rem 0.875rem !important;
+    margin-bottom: 0.375rem !important;
+    flex-shrink: 0 !important;
   }
   
-  /* Responsive scaling for mobile */
-  @media (max-width: 768px) {
-    body.focus-mode-active .flashcard-front,
-    body.focus-mode-active .flashcard-back {
-      padding: 0.8rem !important;
+  /* Answer buttons in Focus Mode - Fixed at bottom on mobile */
+  body.focus-mode-active #answer-buttons-section {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    padding: 0.5rem !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
+    z-index: 50 !important;
+    margin: 0 !important;
+  }
+  
+  body.focus-mode-active #answer-buttons-section button {
+    font-size: clamp(0.875rem, 2.5vw, 1rem) !important;
+    padding: 0.75rem 1rem !important;
+    font-weight: 600 !important;
+  }
+
+  /* Navigation buttons in Focus Mode - Fixed at bottom */
+  body.focus-mode-active #navigation-buttons {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    padding: 0.5rem !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
+    z-index: 50 !important;
+    margin: 0 !important;
+    display: flex !important;
+  }
+
+  body.focus-mode-active #navigation-buttons button {
+    font-size: clamp(0.875rem, 2.5vw, 1rem) !important;
+    padding: 0.75rem 1rem !important;
+    font-weight: 600 !important;
+  }
+
+  /* Progress bar in Focus Mode - Fixed at top */
+  body.focus-mode-active #flashcard-section > div:nth-child(4) {
+    position: fixed !important;
+    top: 3.5rem !important;
+    left: 0 !important;
+    right: 0 !important;
+    padding: 0.5rem 1rem !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+    z-index: 40 !important;
+    margin: 0 !important;
+  }
+  
+  /* Desktop enhancements for Focus Mode */
+  @media (min-width: 768px) {
+    body.focus-mode-active #flashcard-container {
+      padding-bottom: 5.5rem !important; /* More space for desktop buttons */
     }
     
-    body.focus-mode-active #word-content,
+    body.focus-mode-active .flashcard-front,
+    body.focus-mode-active .flashcard-back {
+      padding: 2rem !important;
+    }
+    
+    body.focus-mode-active #focus-btn {
+      top: 1rem !important;
+      right: 1rem !important;
+      padding: 0.875rem 1.5rem !important;
+      font-size: 1rem !important;
+    }
+    
+    body.focus-mode-active #word-content {
+      padding: 2rem !important;
+      font-size: clamp(1.25rem, 2.5vw, 2rem) !important;
+      line-height: 1.5 !important;
+      text-align: center !important; /* Keep centered on desktop too */
+    }
+    
     body.focus-mode-active #definition-content {
-      font-size: clamp(0.9rem, 3.5vw, 1.6rem) !important;
-      padding: 0.3rem !important;
+      padding: 2rem !important;
+      font-size: clamp(1.5rem, 3vw, 2.5rem) !important;
+      line-height: 1.5 !important;
+      text-align: center !important;
+    }
+    
+    body.focus-mode-active .mc-container {
+      padding: 2rem !important;
+      max-width: 1000px !important; /* Limit width on large screens */
     }
     
     body.focus-mode-active .mc-question {
-      font-size: clamp(1rem, 3.5vw, 1.8rem) !important;
-      margin-bottom: 0.5rem !important;
+      font-size: clamp(1.5rem, 3vw, 2.25rem) !important;
+      margin-bottom: 1rem !important;
+      line-height: 1.4 !important;
+      text-align: center !important; /* Center on desktop too */
+    }
+    
+    body.focus-mode-active .mc-instruction {
+      font-size: 1rem !important;
+      margin-bottom: 0.75rem !important;
+      text-align: center !important; /* Center on desktop too */
     }
     
     body.focus-mode-active .mc-option {
-      font-size: clamp(0.85rem, 3vw, 1.2rem) !important;
-      padding: 0.5rem 0.8rem !important;
+      padding: 0.875rem 1.125rem !important;
     }
     
-    body.focus-mode-active .mc-option span {
-      font-size: clamp(0.85rem, 3vw, 1.2rem) !important;
+    body.focus-mode-active .mc-options {
+      gap: 0.625rem !important;
+      margin-bottom: 1.25rem !important;
+    }
+    
+    body.focus-mode-active .mc-number {
+      width: 2.25rem !important;
+      height: 2.25rem !important;
+      min-width: 2.25rem !important;
+      font-size: 1rem !important;
+      margin-right: 0.875rem !important;
+    }
+    
+    body.focus-mode-active .mc-option.correct .mc-number,
+    body.focus-mode-active .mc-option.incorrect .mc-number {
+      font-size: 1.125rem !important;
+    }
+    
+    body.focus-mode-active .mc-text {
+      font-size: clamp(1.125rem, 2vw, 1.5rem) !important;
+      line-height: 1.4 !important;
     }
     
     body.focus-mode-active .mc-btn,
     body.focus-mode-active .mc-btn-correct,
-    body.focus-mode-active .mc-btn-incorrect {
-      font-size: clamp(0.95rem, 3.2vw, 1.3rem) !important;
-      padding: 0.7rem 1.2rem !important;
-      margin-top: 0.7rem !important;
+    body.focus-mode-active .mc-btn-incorrect,
+    body.focus-mode-active .mc-btn-secondary {
+      font-size: 1.125rem !important;
+      padding: 1rem 1.5rem !important;
+      margin-bottom: 0.625rem !important;
+    }
+    
+    /* Answer buttons on desktop - bottom bar with more space */
+    body.focus-mode-active #answer-buttons-section {
+      padding: 1rem 2rem !important;
+      max-width: 1200px !important;
+      margin: 0 auto !important;
+      left: 50% !important;
+      right: auto !important;
+      transform: translateX(-50%) !important;
+    }
+    
+    body.focus-mode-active #answer-buttons-section button {
+      font-size: 1.125rem !important;
+      padding: 1rem 2rem !important;
+    }
+
+    /* Navigation buttons on desktop */
+    body.focus-mode-active #navigation-buttons {
+      padding: 1rem 2rem !important;
+      max-width: 1200px !important;
+      margin: 0 auto !important;
+      left: 50% !important;
+      right: auto !important;
+      transform: translateX(-50%) !important;
+    }
+
+    body.focus-mode-active #navigation-buttons button {
+      font-size: 1.125rem !important;
+      padding: 1rem 2rem !important;
+    }
+
+    /* Progress bar on desktop */
+    body.focus-mode-active #flashcard-section > div:nth-child(4) {
+      padding: 1rem 2rem !important;
+      max-width: 1200px !important;
+      margin: 0 auto !important;
+      left: 50% !important;
+      right: auto !important;
+      transform: translateX(-50%) !important;
     }
   }
   
-  /* NO scrollbars in Focus Mode */
+  /* Clean scrollbar for Focus Mode */
   body.focus-mode-active #word-content::-webkit-scrollbar,
-  body.focus-mode-active #definition-content::-webkit-scrollbar {
-    display: none !important;
+  body.focus-mode-active #definition-content::-webkit-scrollbar,
+  body.focus-mode-active .mc-container::-webkit-scrollbar {
+    width: 6px;
   }
   
+  body.focus-mode-active #word-content::-webkit-scrollbar-track,
+  body.focus-mode-active #definition-content::-webkit-scrollbar-track,
+  body.focus-mode-active .mc-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+  }
+  
+  body.focus-mode-active #word-content::-webkit-scrollbar-thumb,
+  body.focus-mode-active #definition-content::-webkit-scrollbar-thumb,
+  body.focus-mode-active .mc-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+  }
+  
+  body.focus-mode-active #word-content::-webkit-scrollbar-thumb:hover,
+  body.focus-mode-active #definition-content::-webkit-scrollbar-thumb:hover,
+  body.focus-mode-active .mc-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Firefox scrollbar */
   body.focus-mode-active #word-content,
-  body.focus-mode-active #definition-content {
-    -ms-overflow-style: none !important;
-    scrollbar-width: none !important;
+  body.focus-mode-active #definition-content,
+  body.focus-mode-active .mc-container {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
   }
   
   /* Custom scrollbar for content */
