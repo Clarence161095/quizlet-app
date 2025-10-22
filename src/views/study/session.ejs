@@ -1,11 +1,11 @@
-<div class="max-w-4xl mx-auto px-4" id="study-container">
-  <div class="mb-6" id="header-section">
-    <div class="flex justify-between items-start">
-      <div class="flex-1">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2 cursor-pointer hover:text-blue-600 transition" onclick="goBackToSet()">
-          <i class="fas fa-arrow-left text-blue-600"></i> <%= title %>
+<div class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6" id="study-container">
+  <div class="mb-4 sm:mb-6 hide-in-fullscreen" id="header-section">
+    <div class="flex justify-between items-center">
+      <div class="flex-1 min-w-0">
+        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-1 sm:mb-2 cursor-pointer hover:text-blue-600 transition truncate" onclick="goBackToSet()">
+          <i class="fas fa-arrow-left text-blue-600 text-base sm:text-xl"></i> <%= title %>
         </h1>
-        <p class="text-gray-600">
+        <p class="text-xs sm:text-sm lg:text-base text-gray-600">
           <% if (studyType === 'long_term') { %>
             Long-term learning with spaced repetition
           <% } else if (studyType === 'random_all') { %>
@@ -35,65 +35,65 @@
       </a>
     </div>
   <% } else { %>
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6" id="stats-section">
-      <button onclick="filterCards('all')" id="stat-all" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-blue-500 text-center">
-        <p class="text-gray-600 text-sm mb-1">Total</p>
-        <p class="text-2xl font-bold text-gray-800" id="stat-total"><%= flashcards.length %></p>
+    <!-- Stats Cards - Mobile First Responsive -->
+    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 hide-in-fullscreen" id="stats-section">
+      <button onclick="filterCards('all')" id="stat-all" class="stat-card bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-blue-500 text-center">
+        <p class="text-gray-600 text-xs sm:text-sm mb-0.5 sm:mb-1">Total</p>
+        <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800" id="stat-total"><%= flashcards.length %></p>
       </button>
-      <button onclick="filterCards('learned')" id="stat-learned" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-green-500 text-center">
-        <p class="text-gray-600 text-sm mb-1">Learned</p>
-        <p class="text-2xl font-bold text-green-600" id="stat-learned-count">0</p>
+      <button onclick="filterCards('learned')" id="stat-learned" class="stat-card bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-green-500 text-center">
+        <p class="text-gray-600 text-xs sm:text-sm mb-0.5 sm:mb-1">Learned</p>
+        <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600" id="stat-learned-count">0</p>
       </button>
-      <button onclick="filterCards('learning')" id="stat-learning" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-yellow-500 text-center">
-        <p class="text-gray-600 text-sm mb-1">Learning</p>
-        <p class="text-2xl font-bold text-yellow-600" id="stat-learning-count">0</p>
+      <button onclick="filterCards('learning')" id="stat-learning" class="stat-card bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-yellow-500 text-center">
+        <p class="text-gray-600 text-xs sm:text-sm mb-0.5 sm:mb-1">Learning</p>
+        <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600" id="stat-learning-count">0</p>
       </button>
-      <button onclick="filterCards('new')" id="stat-new" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-blue-500 text-center">
-        <p class="text-gray-600 text-sm mb-1">New</p>
-        <p class="text-2xl font-bold text-blue-600" id="stat-new-count">0</p>
+      <button onclick="filterCards('new')" id="stat-new" class="stat-card bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-blue-500 text-center">
+        <p class="text-gray-600 text-xs sm:text-sm mb-0.5 sm:mb-1">New</p>
+        <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600" id="stat-new-count">0</p>
       </button>
-      <button onclick="filterCards('starred')" id="stat-starred" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-yellow-500 text-center">
-        <p class="text-gray-600 text-sm mb-1">Stars</p>
-        <p class="text-2xl font-bold text-yellow-500" id="stat-starred-count">0</p>
+      <button onclick="filterCards('starred')" id="stat-starred" class="stat-card bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-yellow-500 text-center col-span-3 sm:col-span-1">
+        <p class="text-gray-600 text-xs sm:text-sm mb-0.5 sm:mb-1">Stars</p>
+        <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-500" id="stat-starred-count">0</p>
       </button>
     </div>
 
     <!-- Study Interface -->
-    <div class="bg-white rounded-lg shadow p-6 mb-4" id="flashcard-section">
+    <div class="bg-white rounded-lg shadow p-3 sm:p-4 lg:p-6 mb-4" id="flashcard-section">
       <!-- Study Mode Selector -->
-      <div class="mb-4 text-center" id="mode-selector-section">
-        <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden">
+      <div class="mb-3 sm:mb-4 text-center hide-in-fullscreen" id="mode-selector-section">
+        <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden w-full sm:w-auto">
           <button 
             onclick="switchStudyMode('flashcard')" 
             id="mode-flashcard-btn"
-            class="px-6 py-2 bg-white text-gray-700 font-medium transition hover:bg-gray-50"
+            class="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 bg-white text-gray-700 text-sm sm:text-base font-medium transition hover:bg-gray-50"
           >
-            <i class="fas fa-layer-group"></i> Flashcard
+            <i class="fas fa-layer-group"></i> <span class="hidden xs:inline">Flashcard</span><span class="xs:hidden">Flash</span>
           </button>
           <button 
             onclick="switchStudyMode('multichoice')" 
             id="mode-multichoice-btn"
-            class="px-6 py-2 bg-blue-600 text-white font-medium transition"
+            class="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 bg-blue-600 text-white text-sm sm:text-base font-medium transition"
           >
-            <i class="fas fa-list-ul"></i> Multi-Choice
+            <i class="fas fa-list-ul"></i> <span class="hidden xs:inline">Multi-Choice</span><span class="xs:inline">Multi</span>
           </button>
         </div>
-        <p class="text-xs text-gray-500 mt-2" id="mode-hint">
+        <p class="text-xs sm:text-sm text-gray-500 mt-2" id="mode-hint">
           <i class="fas fa-info-circle"></i> <span id="mode-hint-text">Multi-choice mode active</span>
         </p>
       </div>
 
       <!-- Filter Info -->
-      <div class="mb-4 text-center" id="filter-info-section">
-        <span id="filter-info" class="text-sm bg-blue-100 text-blue-800 px-4 py-2 rounded-full">
-          <i class="fas fa-filter"></i> Showing: All Cards
+      <div class="mb-3 sm:mb-4 text-center hide-in-fullscreen" id="filter-info-section">
+        <span id="filter-info" class="text-xs sm:text-sm bg-blue-100 text-blue-800 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full inline-block">
+          <i class="fas fa-filter text-xs sm:text-sm"></i> <span class="hidden xs:inline">Showing:</span> All Cards
         </span>
       </div>
 
       <!-- Progress Bar -->
-      <div class="mb-6" id="progress-section">
-        <div class="flex justify-between items-center text-sm text-gray-600 mb-2">
+      <div class="mb-4 sm:mb-6" id="progress-section">
+        <div class="flex justify-between items-center text-xs sm:text-sm text-gray-600 mb-2">
           <div class="flex items-center gap-2">
             <span>Progress</span>
             <% if (studyType === 'long_term') { %>
@@ -127,7 +127,7 @@
       </div>
 
       <!-- Flashcard -->
-      <div id="flashcard-container" class="mb-1 relative">
+      <div id="flashcard-container" class="mb-2 sm:mb-3 relative">
         <!-- Star button - INSIDE flashcard container for proper positioning -->
         <button 
           onclick="toggleStar()" 
@@ -141,22 +141,22 @@
         <div class="flashcard">
           <div class="flashcard-inner">
             <div class="flashcard-front bg-blue-50 border-2 border-blue-200 rounded-lg">
-              <div class="text-center w-full pt-8 h-full flex flex-col">
-                <p id="flip-hint-front" class="text-sm text-gray-500 mb-1 flex-shrink-0">
+              <div class="text-center w-full pt-4 sm:pt-6 lg:pt-8 h-full flex flex-col">
+                <p id="flip-hint-front" class="text-xs sm:text-sm text-gray-500 mb-1 flex-shrink-0">
                   <i class="fas fa-sync-alt"></i> Click to flip
                 </p>
-                <div id="word-content" class="text-2xl font-semibold text-gray-800 overflow-y-auto flex-1 py-4">
+                <div id="word-content" class="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-800 overflow-y-auto flex-1 py-2 sm:py-3 lg:py-4 px-2 sm:px-4">
                   Loading...
                 </div>
               </div>
             </div>
             
             <div class="flashcard-back bg-green-50 border-2 border-green-200 rounded-lg">
-              <div class="text-center w-full pt-8 h-full flex flex-col">
-                <p id="flip-hint-back" class="text-sm text-gray-500 mb-1 flex-shrink-0">
+              <div class="text-center w-full pt-4 sm:pt-6 lg:pt-8 h-full flex flex-col">
+                <p id="flip-hint-back" class="text-xs sm:text-sm text-gray-500 mb-1 flex-shrink-0">
                   <i class="fas fa-sync-alt"></i> Click to flip
                 </p>
-                <div id="definition-content" class="text-xl text-gray-800 overflow-y-auto flex-1">
+                <div id="definition-content" class="text-base sm:text-lg lg:text-xl text-gray-800 overflow-y-auto flex-1 px-2 sm:px-4">
                   Loading...
                 </div>
               </div>
@@ -166,24 +166,24 @@
       </div>
 
       <!-- LEARN Button - Center positioned with gradient -->
-      <div class="flex justify-center items-center mt-4" id="quick-actions">
+      <div class="flex justify-center items-center mt-3 sm:mt-4" id="quick-actions">
         <button 
           onclick="toggleFocusMode()" 
           id="focus-btn"
-          class="text-white px-12 py-4 rounded-xl transition font-bold text-xl flex items-center gap-3 shadow-2xl hover:shadow-3xl transform hover:scale-105"
-          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-width: 280px; justify-content: center;"
+          class="text-white px-8 sm:px-10 lg:px-12 py-3 sm:py-3.5 lg:py-4 rounded-lg sm:rounded-xl transition font-bold text-base sm:text-lg lg:text-xl flex items-center justify-center gap-2 sm:gap-3 shadow-xl hover:shadow-2xl transform hover:scale-105 w-full sm:w-auto"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); max-width: 400px;"
         >
-          <i class="fas fa-graduation-cap text-2xl"></i>
+          <i class="fas fa-graduation-cap text-lg sm:text-xl lg:text-2xl"></i>
           <span>LEARN</span>
         </button>
       </div>
 
       <!-- Note Button -->
-      <div class="mb-4 text-center" id="note-section">
+      <div class="mb-3 sm:mb-4 text-center hide-in-fullscreen" id="note-section">
         <button 
           onclick="showNoteDialog()" 
           id="note-btn"
-          class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-4 py-2 rounded-lg transition flex items-center gap-2 mx-auto"
+          class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 sm:px-4 py-2 rounded-lg transition flex items-center gap-2 mx-auto text-sm sm:text-base"
           style="display: none;"
         >
           <i class="fas fa-sticky-note"></i>
@@ -195,45 +195,45 @@
       <div id="answer-buttons-section">
         <% if (studyType === 'long_term') { %>
           <!-- Flashcard Mode: 4 buttons in a row (Prev | Incorrect | Correct | Next) -->
-          <div id="flashcard-buttons-wrapper" class="flex justify-center items-center gap-4">
+          <div id="flashcard-buttons-wrapper" class="flex justify-center items-center gap-1.5 sm:gap-2 lg:gap-4">
             <button 
               onclick="previousCard()" 
               id="flashcard-prev-btn"
-              class="bg-gray-500 text-white py-3 px-6 rounded-lg hover:bg-gray-600 transition font-semibold flex items-center gap-2"
+              class="bg-gray-500 text-white py-2 sm:py-2.5 lg:py-3 px-2 sm:px-4 lg:px-6 rounded-md sm:rounded-lg hover:bg-gray-600 transition font-semibold flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm lg:text-base flex-1 sm:flex-initial min-w-0"
             >
-              <i class="fas fa-arrow-left"></i>
-              <span>Previous</span>
+              <i class="fas fa-arrow-left text-xs sm:text-sm"></i>
+              <span class="hidden xs:inline truncate">Prev</span>
             </button>
             <button 
               onclick="submitAnswer(false)" 
-              class="bg-red-500 text-white py-3 px-6 rounded-lg hover:bg-red-600 transition font-semibold flex items-center justify-center gap-2"
+              class="bg-red-500 text-white py-2 sm:py-2.5 lg:py-3 px-2 sm:px-4 lg:px-6 rounded-md sm:rounded-lg hover:bg-red-600 transition font-semibold flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm lg:text-base flex-1 min-w-0"
               id="incorrect-btn"
             >
-              <i class="fas fa-times-circle"></i>
-              <span>Incorrect</span>
+              <i class="fas fa-times-circle text-xs sm:text-sm"></i>
+              <span class="truncate">Incorrect</span>
             </button>
             <button 
               onclick="submitAnswer(true)" 
-              class="bg-green-500 text-white py-3 px-6 rounded-lg hover:bg-green-600 transition font-semibold flex items-center justify-center gap-2"
+              class="bg-green-500 text-white py-2 sm:py-2.5 lg:py-3 px-2 sm:px-4 lg:px-6 rounded-md sm:rounded-lg hover:bg-green-600 transition font-semibold flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm lg:text-base flex-1 min-w-0"
               id="correct-btn"
             >
-              <i class="fas fa-check-circle"></i>
-              <span>Correct</span>
+              <i class="fas fa-check-circle text-xs sm:text-sm"></i>
+              <span class="truncate">Correct</span>
             </button>
             <button 
               onclick="nextCard()" 
               id="flashcard-next-btn"
-              class="bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition font-semibold flex items-center gap-2"
+              class="bg-blue-500 text-white py-2 sm:py-2.5 lg:py-3 px-2 sm:px-4 lg:px-6 rounded-md sm:rounded-lg hover:bg-blue-600 transition font-semibold flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm lg:text-base flex-1 sm:flex-initial min-w-0"
             >
-              <i class="fas fa-arrow-right"></i>
-              <span>Next</span>
+              <i class="fas fa-arrow-right text-xs sm:text-sm"></i>
+              <span class="hidden xs:inline truncate">Next</span>
             </button>
           </div>
         <% } else { %>
-          <div class="flex space-x-4">
+          <div class="flex space-x-2 sm:space-x-4">
             <button 
               onclick="nextCard()" 
-              class="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition font-semibold flex items-center justify-center gap-2"
+              class="flex-1 bg-blue-500 text-white py-2.5 sm:py-3 rounded-lg hover:bg-blue-600 transition font-semibold flex items-center justify-center gap-2 text-sm sm:text-base"
             >
               <i class="fas fa-arrow-right"></i>
               <span>Next Card</span>
@@ -243,11 +243,11 @@
       </div>
 
       <!-- Navigation Buttons (for multi-choice mode) -->
-      <div id="navigation-buttons" class="flex justify-center items-center gap-4 mt-4" style="display: none;">
+      <div id="navigation-buttons" class="flex flex-wrap justify-center items-center gap-2 sm:gap-3 lg:gap-4 mt-3 sm:mt-4" style="display: none;">
         <button 
           onclick="previousCard()" 
           id="prev-btn"
-          class="bg-gray-500 text-white py-3 px-6 rounded-lg hover:bg-gray-600 transition font-semibold flex items-center gap-2"
+          class="bg-gray-500 text-white py-2 sm:py-2.5 lg:py-3 px-4 sm:px-5 lg:px-6 rounded-md sm:rounded-lg hover:bg-gray-600 transition font-semibold flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm lg:text-base"
         >
           <i class="fas fa-arrow-left"></i>
           <span>Previous</span>
@@ -255,32 +255,21 @@
         <button 
           onclick="checkMultiChoiceAnswer()" 
           id="mc-check-answer-btn"
-          class="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          class="bg-blue-600 text-white py-2 sm:py-2.5 lg:py-3 px-4 sm:px-5 lg:px-6 rounded-md sm:rounded-lg hover:bg-blue-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm lg:text-base"
           disabled
           style="display: none;"
         >
           <i class="fas fa-check-circle"></i>
-          <span>Check Answer</span>
+          <span class="hidden xs:inline">Check</span> Answer
         </button>
         <button 
           onclick="nextCard()" 
           id="next-btn"
-          class="bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition font-semibold flex items-center gap-2"
+          class="bg-blue-500 text-white py-2 sm:py-2.5 lg:py-3 px-4 sm:px-5 lg:px-6 rounded-md sm:rounded-lg hover:bg-blue-600 transition font-semibold flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm lg:text-base"
         >
           <i class="fas fa-arrow-right"></i>
           <span>Next</span>
         </button>
-      </div>
-    </div>
-
-    <!-- Card Info -->
-    <div class="bg-gray-50 p-4 rounded-lg text-sm text-gray-600">
-      <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
-        <span class="text-xs md:text-sm">
-          <i class="fas fa-keyboard"></i> 
-          <strong>Shortcuts:</strong> Space to flip, ← for Incorrect, → for Correct
-        </span>
-        <span id="card-info" class="text-xs md:text-sm"></span>
       </div>
     </div>
   <% } %>
@@ -1323,6 +1312,23 @@
 </script>
 
 <style>
+  /* Custom breakpoint for extra small screens (xs) */
+  @media (min-width: 475px) {
+    .xs\:inline {
+      display: inline !important;
+    }
+    .xs\:hidden {
+      display: none !important;
+    }
+  }
+  
+  /* Below 475px (mobile) */
+  @media (max-width: 474px) {
+    .xs\:inline {
+      display: none !important;
+    }
+  }
+  
   /* Container styling - prevent overflow */
   #study-container {
     width: 100%;
@@ -1348,12 +1354,26 @@
     width: 100%;
   }
   
-  /* Flashcard 3D Flip Animation */
+  /* Flashcard 3D Flip Animation - Mobile First */
   .flashcard {
     perspective: 1000px;
     width: 100%;
-    height: 400px; /* Increase from 350px to 400px for mobile */
+    height: 300px; /* Mobile: 300px */
     cursor: pointer;
+  }
+  
+  /* Tablet */
+  @media (min-width: 640px) {
+    .flashcard {
+      height: 350px;
+    }
+  }
+  
+  /* Desktop */
+  @media (min-width: 1024px) {
+    .flashcard {
+      height: 450px;
+    }
   }
   
   .flashcard-inner {
@@ -1380,8 +1400,26 @@
     align-items: center;
     justify-content: center;
     border-radius: 0.5rem;
-    padding: 1.5rem; /* Increase padding for better content display */
-    font-size: 1.25rem; /* Larger text on mobile */
+    padding: 0.75rem; /* Mobile: smaller padding */
+    font-size: 1rem;
+  }
+  
+  /* Tablet */
+  @media (min-width: 640px) {
+    .flashcard-front,
+    .flashcard-back {
+      padding: 1rem;
+      font-size: 1.125rem;
+    }
+  }
+  
+  /* Desktop */
+  @media (min-width: 1024px) {
+    .flashcard-front,
+    .flashcard-back {
+      padding: 1.5rem;
+      font-size: 1.25rem;
+    }
   }
   
   /* Hide overflow when containing multi-choice */
@@ -1399,13 +1437,30 @@
     transform: rotateY(180deg);
   }
 
-  /* Multi-line text support */
+  /* Multi-line text support - Mobile First */
   #word-content,
   #definition-content {
     white-space: pre-wrap;
     word-wrap: break-word;
-    font-size: 1.25rem; /* Larger text on mobile */
-    line-height: 1.6;
+    word-break: break-word;
+    font-size: 0.875rem; /* Mobile: smaller */
+    line-height: 1.5;
+  }
+  
+  @media (min-width: 640px) {
+    #word-content,
+    #definition-content {
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    #word-content,
+    #definition-content {
+      font-size: 1.25rem;
+      line-height: 1.6;
+    }
   }
   
   /* Hide scrollbar for multi-choice content */
@@ -1527,8 +1582,38 @@
     flex-shrink: 0;
   }
   
+  /* Tablet styles */
+  @media (min-width: 640px) {
+    .mc-container {
+      padding: 0.875rem;
+    }
+    
+    .mc-header {
+      margin-bottom: 0.875rem;
+    }
+    
+    .mc-label {
+      font-size: 0.8125rem;
+    }
+    
+    .mc-question {
+      font-size: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    
+    .mc-instruction {
+      font-size: 0.8125rem;
+      margin-bottom: 0.875rem;
+    }
+    
+    .mc-options {
+      gap: 0.625rem;
+      margin-bottom: 1.25rem;
+    }
+  }
+  
   /* Desktop styles */
-  @media (min-width: 768px) {
+  @media (min-width: 1024px) {
     .mc-container {
       padding: 1rem;
     }
@@ -1560,16 +1645,23 @@
   .mc-option {
     display: flex;
     align-items: center;
-    padding: 0.75rem 1rem;
+    padding: 0.625rem 0.75rem;
     background: #ffffff;
     border: 2px solid #e5e7eb;
     border-radius: 0.5rem;
     cursor: pointer;
     transition: all 0.2s ease;
-    min-height: 3.5rem;
+    min-height: 3rem;
   }
   
-  @media (min-width: 768px) {
+  @media (min-width: 640px) {
+    .mc-option {
+      padding: 0.75rem 1rem;
+      min-height: 3.5rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
     .mc-option {
       padding: 1rem 1.25rem;
       border-radius: 0.75rem;
@@ -1602,9 +1694,9 @@
   }
   
   .mc-number {
-    width: 2rem;
-    height: 2rem;
-    min-width: 2rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    min-width: 1.75rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1612,22 +1704,22 @@
     color: #4b5563;
     border-radius: 50%;
     font-weight: 700;
-    font-size: 0.875rem;
-    margin-right: 0.75rem;
+    font-size: 0.8125rem;
+    margin-right: 0.5rem;
     transition: all 0.2s ease;
   }
 
   /* Checkbox style for multi-select */
   .mc-checkbox {
-    width: 2rem;
-    height: 2rem;
-    min-width: 2rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    min-width: 1.75rem;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #4b5563;
-    font-size: 1.25rem;
-    margin-right: 0.75rem;
+    font-size: 1.125rem;
+    margin-right: 0.5rem;
     transition: all 0.2s ease;
   }
 
@@ -1639,7 +1731,25 @@
     color: #3b82f6;
   }
   
-  @media (min-width: 768px) {
+  @media (min-width: 640px) {
+    .mc-number {
+      width: 2rem;
+      height: 2rem;
+      min-width: 2rem;
+      font-size: 0.875rem;
+      margin-right: 0.75rem;
+    }
+
+    .mc-checkbox {
+      width: 2rem;
+      height: 2rem;
+      min-width: 2rem;
+      font-size: 1.25rem;
+      margin-right: 0.75rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
     .mc-number {
       width: 2.5rem;
       height: 2.5rem;
@@ -1696,16 +1806,24 @@
   
   .mc-text {
     flex: 1;
-    font-size: 0.9375rem;
-    line-height: 1.5;
+    font-size: 0.8125rem;
+    line-height: 1.4;
     color: #1f2937;
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
   
-  @media (min-width: 768px) {
+  @media (min-width: 640px) {
+    .mc-text {
+      font-size: 0.9375rem;
+      line-height: 1.5;
+    }
+  }
+  
+  @media (min-width: 1024px) {
     .mc-text {
       font-size: 1.125rem;
+      line-height: 1.5;
     }
   }
   
@@ -1926,24 +2044,44 @@
     transition: all 0.3s ease;
   }
   
-  /* Star Button - Fixed position in top-right corner of flashcard */
+  /* Star Button - Fixed position in top-right corner of flashcard - Mobile First */
   .star-btn-corner {
     position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
+    top: 0.5rem;
+    right: 0.5rem;
     z-index: 10;
-    width: 3rem;
-    height: 3rem;
+    width: 2.25rem;
+    height: 2.25rem;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     border: 2px solid transparent;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-size: 1.125rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  @media (min-width: 640px) {
+    .star-btn-corner {
+      top: 0.75rem;
+      right: 0.75rem;
+      width: 2.75rem;
+      height: 2.75rem;
+      font-size: 1.375rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .star-btn-corner {
+      top: 1rem;
+      right: 1rem;
+      width: 3.25rem;
+      height: 3.25rem;
+      font-size: 1.625rem;
+    }
   }
   
   .star-btn-corner.unstarred {
@@ -1975,37 +2113,16 @@
     transform: scale(0.95);
   }
   
-  #star-btn-top {
-    transition: all 0.2s ease;
-  }
+  /* Removed duplicate styles - now using .star-btn-corner class above */
   
-  #star-btn-top:hover {
-    transform: scale(1.2);
-    background-color: rgba(251, 191, 36, 0.1);
-  }
-  
-  #star-btn-top:active {
-    transform: scale(0.95);
-  }
-  
-  @media (min-width: 768px) {
-    .star-btn-corner {
-      width: 3.5rem;
-      height: 3.5rem;
-      font-size: 1.75rem;
-      top: 1rem;
-      right: 1rem;
-    }
-    
-    #star-btn-top {
-      font-size: 2rem !important;
-      padding: 0.75rem 1rem !important;
-    }
-    
-    #quick-actions {
-      gap: 1rem !important;
-      margin-bottom: 1.5rem !important;
-    }
+  /* Hide elements in fullscreen/focus mode */
+  body.focus-mode-active .hide-in-fullscreen {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
   
   /* Focus Mode - Centered, Clean Layout with 98vw/98vh limit */

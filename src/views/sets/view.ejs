@@ -1,35 +1,35 @@
 <div class="max-w-7xl mx-auto">
   <!-- Header -->
   <div class="mb-6">
-    <div class="flex justify-between items-start">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+      <div class="flex-1">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           <i class="fas fa-layer-group text-blue-600"></i> <%= set.name %>
         </h1>
         <% if (set.description) { %>
-          <p class="text-gray-600"><%= set.description %></p>
+          <p class="text-sm sm:text-base text-gray-600"><%= set.description %></p>
         <% } %>
       </div>
-      <div class="flex space-x-2">
+      <div class="flex flex-wrap gap-2 sm:flex-nowrap sm:gap-2">
         <% if (set.source_set_id) { %>
           <!-- Cloned set: Show Update button, hide Edit button -->
-          <form action="/shares/sets/<%= set.id %>/update-from-source" method="POST" onsubmit="return confirm('This will replace all flashcards with the latest from source. Your learning progress will be kept. Continue?');" class="inline">
-            <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
-              <i class="fas fa-sync"></i> Update from Source
+          <form action="/shares/sets/<%= set.id %>/update-from-source" method="POST" onsubmit="return confirm('This will replace all flashcards with the latest from source. Your learning progress will be kept. Continue?');" class="flex-1 sm:flex-initial">
+            <button type="submit" class="w-full sm:w-auto bg-purple-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-purple-700 text-sm whitespace-nowrap">
+              <i class="fas fa-sync"></i><span class="hidden xs:inline"> Update</span>
             </button>
           </form>
         <% } else { %>
           <!-- Original set: Show Edit button -->
-          <a href="/sets/<%= set.id %>/edit" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
-            <i class="fas fa-edit"></i> Edit
+          <a href="/sets/<%= set.id %>/edit" class="flex-1 sm:flex-initial text-center bg-gray-200 text-gray-700 px-3 sm:px-4 py-2 rounded-lg hover:bg-gray-300 text-sm whitespace-nowrap">
+            <i class="fas fa-edit"></i><span class="hidden xs:inline"> Edit</span>
           </a>
         <% } %>
-        <a href="/shares/sets/<%= set.id %>/share" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-          <i class="fas fa-share-alt"></i> Share
+        <a href="/shares/sets/<%= set.id %>/share" class="flex-1 sm:flex-initial text-center bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 text-sm whitespace-nowrap">
+          <i class="fas fa-share-alt"></i><span class="hidden xs:inline"> Share</span>
         </a>
-        <form action="/sets/<%= set.id %>/delete" method="POST" onsubmit="return confirm('Delete this set and all flashcards?');" class="inline">
-          <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
-            <i class="fas fa-trash"></i> Delete
+        <form action="/sets/<%= set.id %>/delete" method="POST" onsubmit="return confirm('Delete this set and all flashcards?');" class="flex-1 sm:flex-initial">
+          <button type="submit" class="w-full sm:w-auto bg-red-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-600 text-sm whitespace-nowrap">
+            <i class="fas fa-trash"></i><span class="hidden xs:inline"> Delete</span>
           </button>
         </form>
       </div>
@@ -78,37 +78,37 @@
   </div>
 
   <!-- Flashcards -->
-  <div class="bg-white p-6 rounded-lg shadow">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-bold text-gray-800">
+  <div class="bg-white p-4 sm:p-6 rounded-lg shadow">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-4">
+      <h2 class="text-lg sm:text-xl font-bold text-gray-800">
         <i class="fas fa-cards text-blue-500"></i> Flashcards (<%= flashcards.length %>)
       </h2>
-      <div class="flex space-x-2">
+      <div class="flex flex-wrap gap-2">
         <% if (set.source_set_id) { %>
           <!-- Cloned set: Only show Export if allowed -->
           <% if (set.allow_export) { %>
-            <a href="/sets/<%= set.id %>/export?termSep=tab&cardSep=newline" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 text-sm">
-              <i class="fas fa-download"></i> Export
+            <a href="/sets/<%= set.id %>/export?termSep=tab&cardSep=newline" class="flex-1 xs:flex-initial text-center bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 text-sm whitespace-nowrap">
+              <i class="fas fa-download"></i><span class="hidden xs:inline"> Export</span>
             </a>
           <% } else { %>
-            <span class="bg-gray-100 text-gray-400 px-4 py-2 rounded-lg text-sm cursor-not-allowed" title="Export disabled by owner">
-              <i class="fas fa-lock"></i> Export Locked
+            <span class="flex-1 xs:flex-initial text-center bg-gray-100 text-gray-400 px-3 py-2 rounded-lg text-sm cursor-not-allowed whitespace-nowrap" title="Export disabled by owner">
+              <i class="fas fa-lock"></i><span class="hidden xs:inline"> Export Locked</span>
             </span>
           <% } %>
           <!-- No Import/Add Card buttons for cloned sets -->
         <% } else { %>
           <!-- Original set: Show all buttons -->
-          <a href="/sets/<%= set.id %>/export?termSep=tab&cardSep=newline" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 text-sm">
-            <i class="fas fa-download"></i> Export
+          <a href="/sets/<%= set.id %>/export?termSep=tab&cardSep=newline" class="flex-1 xs:flex-initial text-center bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 text-sm whitespace-nowrap">
+            <i class="fas fa-download"></i><span class="hidden xs:inline"> Export</span>
           </a>
-          <button onclick="toggleImportForm()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
-            <i class="fas fa-file-import"></i> Import
+          <button onclick="toggleImportForm()" class="flex-1 xs:flex-initial bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 text-sm whitespace-nowrap">
+            <i class="fas fa-file-import"></i><span class="hidden xs:inline"> Import</span>
           </button>
-          <button onclick="toggleMarkdownImportForm()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 text-sm">
-            <i class="fab fa-markdown"></i> Import MD
+          <button onclick="toggleMarkdownImportForm()" class="flex-1 xs:flex-initial bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 text-sm whitespace-nowrap">
+            <i class="fab fa-markdown"></i><span class="hidden xs:inline"> MD</span>
           </button>
-          <a href="/flashcards/create/<%= set.id %>" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
-            <i class="fas fa-plus"></i> Add Card
+          <a href="/flashcards/create/<%= set.id %>" class="flex-1 xs:flex-initial text-center bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 text-sm whitespace-nowrap">
+            <i class="fas fa-plus"></i><span class="hidden xs:inline"> Add Card</span>
           </a>
         <% } %>
       </div>
