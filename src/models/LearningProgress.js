@@ -80,17 +80,17 @@ class LearningProgress {
       ease_factor = ease_factor + 0.1; // Increase ease factor for correct answers
       if (ease_factor > 3.0) ease_factor = 3.0;
 
-      // Mark as mastered after 7 consecutive correct answers
-      if (consecutive_correct >= 7) {
+      // Mark as mastered after 4 consecutive correct answers (KHÔNG BAO GIỜ RESET)
+      if (consecutive_correct >= 4) {
         is_mastered = 1;
       }
     } else {
-      // Reset on incorrect answer
+      // Reset consecutive_correct nhưng GIỮ NGUYÊN is_mastered nếu đã mastered
       consecutive_correct = 0;
       repetitions = 0;
       interval_days = 0;
       ease_factor = Math.max(1.3, ease_factor - 0.2); // Decrease ease factor
-      is_mastered = 0;
+      // KHÔNG reset is_mastered - một khi đã master thì vẫn giữ trạng thái đó
     }
 
     const nextReviewDate = new Date(now.getTime() + interval_days * 24 * 60 * 60 * 1000);
@@ -158,8 +158,8 @@ class LearningProgress {
     let query = `
       SELECT 
         COUNT(DISTINCT f.id) as total,
-        COUNT(DISTINCT CASE WHEN lp.is_mastered = 1 THEN f.id END) as mastered,
-        COUNT(DISTINCT CASE WHEN lp.consecutive_correct > 0 THEN f.id END) as learning
+        COUNT(DISTINCT CASE WHEN lp.flashcard_id IS NOT NULL THEN f.id END) as learned,
+        COUNT(DISTINCT CASE WHEN lp.flashcard_id IS NOT NULL AND lp.is_mastered = 0 THEN f.id END) as learning
       FROM flashcards f
       LEFT JOIN learning_progress lp ON f.id = lp.flashcard_id AND lp.user_id = ?
     `;
@@ -180,8 +180,8 @@ class LearningProgress {
     const stmt = db.prepare(`
       SELECT 
         COUNT(DISTINCT f.id) as total,
-        COUNT(DISTINCT CASE WHEN lp.is_mastered = 1 THEN f.id END) as mastered,
-        COUNT(DISTINCT CASE WHEN lp.consecutive_correct > 0 AND lp.is_mastered = 0 THEN f.id END) as learning
+        COUNT(DISTINCT CASE WHEN lp.flashcard_id IS NOT NULL THEN f.id END) as learned,
+        COUNT(DISTINCT CASE WHEN lp.flashcard_id IS NOT NULL AND lp.is_mastered = 0 THEN f.id END) as learning
       FROM flashcards f
       INNER JOIN sets s ON f.set_id = s.id
       INNER JOIN folder_sets fs ON s.id = fs.set_id

@@ -102,11 +102,34 @@ router.get('/:id/study', ensureAuthenticated, checkMFA, (req, res) => {
   }
 
   const dueFlashcards = LearningProgress.getDueFlashcardsInFolder(req.user.id, req.params.id);
+  
+  // Get ALL flashcards for stats calculation (not just due ones)
+  const allFlashcards = Folder.getFlashcardsInFolder(req.params.id);
+  
+  // Mark due cards with progress
+  dueFlashcards.forEach(card => {
+    card.has_progress = card.next_review_date !== null && card.next_review_date !== undefined;
+  });
+  
+  // Add progress info to all flashcards for accurate stats
+  allFlashcards.forEach(card => {
+    const progress = LearningProgress.findByUserAndFlashcard(req.user.id, card.id);
+    if (progress) {
+      card.has_progress = true;
+      card.consecutive_correct = progress.consecutive_correct || 0;
+      card.is_mastered = progress.is_mastered || 0;
+    } else {
+      card.has_progress = false;
+      card.consecutive_correct = 0;
+      card.is_mastered = 0;
+    }
+  });
 
   res.render('study/session', {
     title: `Study: ${folder.name}`,
     user: req.user,
     flashcards: dueFlashcards,
+    allFlashcards: allFlashcards, // Pass all flashcards for stats
     studyType: 'long_term',
     entityType: 'folder',
     entityId: req.params.id
@@ -129,6 +152,21 @@ router.get('/:id/random', ensureAuthenticated, checkMFA, (req, res) => {
   } else {
     flashcards = Folder.getFlashcardsInFolder(req.params.id);
   }
+  
+  // Fetch learning progress for each flashcard
+  flashcards.forEach(card => {
+    const progress = LearningProgress.findByUserAndFlashcard(req.user.id, card.id);
+    if (progress) {
+      card.has_progress = true;
+      card.consecutive_correct = progress.consecutive_correct || 0;
+      card.next_review_date = progress.next_review_date;
+      card.is_mastered = progress.is_mastered || 0;
+    } else {
+      card.has_progress = false;
+      card.consecutive_correct = 0;
+      card.is_mastered = 0;
+    }
+  });
 
   // Shuffle flashcards
   flashcards.sort(() => Math.random() - 0.5);

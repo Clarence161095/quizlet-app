@@ -37,23 +37,23 @@
   <% } else { %>
     <!-- Stats Cards -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6" id="stats-section">
-      <button onclick="filterCards('all')" id="stat-all" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-blue-500">
+      <button onclick="filterCards('all')" id="stat-all" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-blue-500 text-center">
         <p class="text-gray-600 text-sm mb-1">Total</p>
         <p class="text-2xl font-bold text-gray-800" id="stat-total"><%= flashcards.length %></p>
       </button>
-      <button onclick="filterCards('mastered')" id="stat-mastered" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-green-500">
-        <p class="text-gray-600 text-sm mb-1">Mastered</p>
-        <p class="text-2xl font-bold text-green-600" id="stat-mastered-count">0</p>
+      <button onclick="filterCards('learned')" id="stat-learned" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-green-500 text-center">
+        <p class="text-gray-600 text-sm mb-1">Learned</p>
+        <p class="text-2xl font-bold text-green-600" id="stat-learned-count">0</p>
       </button>
-      <button onclick="filterCards('learning')" id="stat-learning" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-yellow-500">
+      <button onclick="filterCards('learning')" id="stat-learning" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-yellow-500 text-center">
         <p class="text-gray-600 text-sm mb-1">Learning</p>
         <p class="text-2xl font-bold text-yellow-600" id="stat-learning-count">0</p>
       </button>
-      <button onclick="filterCards('new')" id="stat-new" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-blue-500">
+      <button onclick="filterCards('new')" id="stat-new" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-blue-500 text-center">
         <p class="text-gray-600 text-sm mb-1">New</p>
         <p class="text-2xl font-bold text-blue-600" id="stat-new-count">0</p>
       </button>
-      <button onclick="filterCards('starred')" id="stat-starred" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-yellow-500">
+      <button onclick="filterCards('starred')" id="stat-starred" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-yellow-500 text-center">
         <p class="text-gray-600 text-sm mb-1">Stars</p>
         <p class="text-2xl font-bold text-yellow-500" id="stat-starred-count">0</p>
       </button>
@@ -127,8 +127,7 @@
       </div>
 
       <!-- Flashcard -->
-            <!-- Flashcard -->
-      <div id="flashcard-container" class="mb-1">
+      <div id="flashcard-container" class="mb-1 relative">
         <div class="flashcard">
           <div class="flashcard-inner">
             <div class="flashcard-front bg-blue-50 border-2 border-blue-200 rounded-lg">
@@ -156,23 +155,27 @@
         </div>
       </div>
 
-      <!-- Quick Actions (Star + Focus) - Ở chế độ bình thường -->
-      <div class="flex justify-center items-center gap-3 mb-3" id="quick-actions">
-        <button 
-          onclick="toggleStar()" 
-          id="star-btn-top"
-          class="text-gray-400 hover:text-yellow-500 transition text-2xl px-3 py-2 rounded-lg hover:bg-gray-100 flex items-center justify-center"
-          title="Toggle Star"
-        >
-          <i class="fas fa-star"></i>
-        </button>
+      <!-- Star button - Positioned at top right corner of flashcard -->
+      <button 
+        onclick="toggleStar()" 
+        id="star-btn-top"
+        class="absolute top-4 right-4 z-10 text-gray-400 hover:text-yellow-500 transition text-3xl p-2 rounded-full hover:bg-white/50 backdrop-blur-sm"
+        title="Toggle Star"
+        style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+      >
+        <i class="fas fa-star"></i>
+      </button>
+
+      <!-- LEARN Button - Center positioned with gradient -->
+      <div class="flex justify-center items-center mt-4" id="quick-actions">
         <button 
           onclick="toggleFocusMode()" 
           id="focus-btn"
-          class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition text-sm font-semibold flex items-center gap-2"
+          class="text-white px-12 py-4 rounded-xl transition font-bold text-xl flex items-center gap-3 shadow-2xl hover:shadow-3xl transform hover:scale-105"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-width: 280px; justify-content: center;"
         >
-          <i class="fas fa-compress-alt"></i>
-          <span>Focus Mode</span>
+          <i class="fas fa-graduation-cap text-2xl"></i>
+          <span>LEARN</span>
         </button>
       </div>
 
@@ -286,6 +289,12 @@
 
 <script>
   const flashcards = <%- JSON.stringify(flashcards || []) %>;
+  // For long-term study, use allFlashcards for stats (includes non-due cards)
+  <% if (typeof allFlashcards !== 'undefined' && allFlashcards) { %>
+    const allFlashcardsForStats = <%- JSON.stringify(allFlashcards) %>;
+  <% } else { %>
+    const allFlashcardsForStats = flashcards;
+  <% } %>
   const studyType = '<%= studyType %>';
   const entityType = '<%= entityType %>';
   const entityId = '<%= entityId %>';
@@ -432,27 +441,37 @@
 
   // Initialize stats
   function updateStats() {
+    // Use allFlashcardsForStats for accurate stats (includes all cards, not just due/filtered)
+    const cardsForStats = allFlashcardsForStats;
+    
     const stats = {
-      total: flashcards.length,
-      mastered: 0,
+      total: cardsForStats.length,
+      learned: 0,
       learning: 0,
       new: 0,
       starred: 0
     };
 
-    flashcards.forEach(card => {
+    cardsForStats.forEach(card => {
       if (card.is_starred) stats.starred++;
-      if (card.is_mastered) {
-        stats.mastered++;
-      } else if (card.consecutive_correct > 0) {
-        stats.learning++;
+      
+      if (card.has_progress) {
+        // Learned: Tất cả các từ đã học (có learning_progress record)
+        stats.learned++;
+        
+        // Learning: Các từ đang học nhưng chưa mastered
+        // Mastered = đã đúng 4 lần liên tiếp (consecutive_correct >= 4)
+        if (card.consecutive_correct < 4) {
+          stats.learning++;
+        }
       } else {
+        // New: Các từ chưa học (chưa có learning_progress record)
         stats.new++;
       }
     });
 
     document.getElementById('stat-total').textContent = stats.total;
-    document.getElementById('stat-mastered-count').textContent = stats.mastered;
+    document.getElementById('stat-learned-count').textContent = stats.learned;
     document.getElementById('stat-learning-count').textContent = stats.learning;
     document.getElementById('stat-new-count').textContent = stats.new;
     document.getElementById('stat-starred-count').textContent = stats.starred;
@@ -479,20 +498,23 @@
         document.getElementById('stat-all').classList.add('border-blue-500');
         updateFilterInfo('all', 'All Cards', 'blue');
         break;
-      case 'mastered':
-        filteredFlashcards = flashcards.filter(card => card.is_mastered);
-        document.getElementById('stat-mastered').classList.remove('border-transparent');
-        document.getElementById('stat-mastered').classList.add('border-green-500');
-        updateFilterInfo('mastered', 'Mastered Cards', 'green');
+      case 'learned':
+        // Learned: Tất cả các từ đã học (có learning_progress)
+        filteredFlashcards = flashcards.filter(card => card.has_progress);
+        document.getElementById('stat-learned').classList.remove('border-transparent');
+        document.getElementById('stat-learned').classList.add('border-green-500');
+        updateFilterInfo('learned', 'Learned Cards', 'green');
         break;
       case 'learning':
-        filteredFlashcards = flashcards.filter(card => !card.is_mastered && (card.consecutive_correct > 0));
+        // Learning: Các từ đang học nhưng chưa mastered (consecutive_correct < 4)
+        filteredFlashcards = flashcards.filter(card => card.has_progress && card.consecutive_correct < 4);
         document.getElementById('stat-learning').classList.remove('border-transparent');
         document.getElementById('stat-learning').classList.add('border-yellow-500');
         updateFilterInfo('learning', 'Learning Cards', 'yellow');
         break;
       case 'new':
-        filteredFlashcards = flashcards.filter(card => !card.is_mastered && (!card.consecutive_correct || card.consecutive_correct === 0));
+        // New: Các từ chưa học (chưa có learning_progress)
+        filteredFlashcards = flashcards.filter(card => !card.has_progress);
         document.getElementById('stat-new').classList.remove('border-transparent');
         document.getElementById('stat-new').classList.add('border-blue-500');
         updateFilterInfo('new', 'New Cards', 'blue');
@@ -516,9 +538,9 @@
       // Auto-switch to a filter with data
       const availableFilters = [
         { type: 'all', count: flashcards.length },
-        { type: 'mastered', count: flashcards.filter(c => c.is_mastered).length },
-        { type: 'learning', count: flashcards.filter(c => !c.is_mastered && c.consecutive_correct > 0).length },
-        { type: 'new', count: flashcards.filter(c => !c.is_mastered && (!c.consecutive_correct || c.consecutive_correct === 0)).length },
+        { type: 'learned', count: flashcards.filter(c => c.has_progress).length },
+        { type: 'learning', count: flashcards.filter(c => c.has_progress && c.consecutive_correct < 4).length },
+        { type: 'new', count: flashcards.filter(c => !c.has_progress).length },
         { type: 'starred', count: flashcards.filter(c => c.is_starred).length }
       ];
       
@@ -585,9 +607,9 @@
       container.classList.add('focus-mode-container');
       
       // Update button to Exit - ALWAYS VISIBLE
-      btn.innerHTML = '<i class="fas fa-times"></i> Exit';
+      btn.innerHTML = '<i class="fas fa-times"></i> EXIT';
       btn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
-      btn.classList.add('bg-red-500', 'hover:bg-red-600');
+      btn.classList.add('bg-red-500', 'hover:bg-red-600', 'font-bold');
       btn.style.position = 'fixed';
       btn.style.top = '0.5rem';
       btn.style.right = '0.5rem';
@@ -597,13 +619,13 @@
       // Show temporary hint
       const hint = document.createElement('div');
       hint.id = 'focus-hint';
-      hint.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white px-6 py-3 rounded-lg text-sm z-40 shadow-lg';
+      hint.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white px-6 py-3 rounded-lg text-sm z-40 shadow-lg font-semibold';
       
       // Different hint for mobile vs desktop
       if (window.innerWidth < 768) {
-        hint.innerHTML = '<i class="fas fa-info-circle"></i> Focus Mode - Press ESC to exit';
+        hint.innerHTML = '<i class="fas fa-info-circle"></i> LEARN Mode - Press ESC to exit';
       } else {
-        hint.innerHTML = '<i class="fas fa-compress-alt"></i> Focus Mode Active - Press ESC or click Exit';
+        hint.innerHTML = '<i class="fas fa-graduation-cap"></i> LEARN Mode Active - Press ESC or click EXIT';
       }
       
       document.body.appendChild(hint);
@@ -632,9 +654,9 @@
       container.classList.remove('focus-mode-container');
       
       // Restore button
-      btn.innerHTML = '<i class="fas fa-compress-alt"></i> Focus Mode';
+      btn.innerHTML = '<i class="fas fa-graduation-cap"></i> <span>LEARN</span>';
       btn.classList.add('bg-purple-600', 'hover:bg-purple-700');
-      btn.classList.remove('bg-red-500', 'hover:bg-red-600');
+      btn.classList.remove('bg-red-500', 'hover:bg-red-600', 'font-bold');
       btn.style.position = '';
       btn.style.top = '';
       btn.style.right = '';
@@ -762,8 +784,17 @@
 
       // Update card info
       if (card.consecutive_correct !== undefined) {
-        document.getElementById('card-info').textContent = 
-          `Streak: ${card.consecutive_correct || 0} | ${card.is_mastered ? 'Mastered ✓' : 'Learning'}`;
+        let status = 'New';
+        if (card.has_progress) {
+          if (card.consecutive_correct >= 4) {
+            status = `Mastered ✓ (${card.consecutive_correct} streak)`;
+          } else if (card.consecutive_correct > 0) {
+            status = `Learning (${card.consecutive_correct}/4 to master)`;
+          } else {
+            status = 'Learning (0/4 to master)';
+          }
+        }
+        document.getElementById('card-info').textContent = status;
       }
 
       // Update navigation buttons visibility
@@ -1039,15 +1070,13 @@
       // Update local card data
       const originalCard = flashcards.find(c => c.id === card.id);
       if (originalCard) {
+        // Đánh dấu là đã học (có learning_progress)
+        originalCard.has_progress = true;
+        
         if (isCorrect) {
           originalCard.consecutive_correct = (originalCard.consecutive_correct || 0) + 1;
-          // Check if mastered (e.g., 3 consecutive correct)
-          if (originalCard.consecutive_correct >= 3) {
-            originalCard.is_mastered = true;
-          }
         } else {
           originalCard.consecutive_correct = 0;
-          originalCard.is_mastered = false;
         }
       }
       
@@ -1179,12 +1208,12 @@
   document.addEventListener('keydown', function(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     
-    // F key to toggle Focus Mode
-    if (e.key === 'f' || e.key === 'F') {
+    // L key to toggle LEARN Mode (was F for Focus)
+    if (e.key === 'l' || e.key === 'L') {
       toggleFocusMode();
     }
     
-    // ESC to exit Focus Mode
+    // ESC to exit LEARN Mode
     if (e.key === 'Escape' && isFocusMode) {
       toggleFocusMode();
     }
@@ -1201,6 +1230,20 @@
   /* Ensure all child elements respect container padding */
   #study-container > * {
     box-sizing: border-box;
+  }
+  
+  /* Stats Card Layout - căn giữa text và layout đồng đều */
+  .stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+  }
+  
+  .stat-card p {
+    margin: 0;
+    width: 100%;
   }
   
   /* Flashcard 3D Flip Animation */

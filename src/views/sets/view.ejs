@@ -43,8 +43,8 @@
       <p class="text-2xl font-bold text-gray-800"><%= flashcards.length %></p>
     </div>
     <div class="bg-white p-4 rounded-lg shadow">
-      <p class="text-gray-600 text-sm">Mastered</p>
-      <p class="text-2xl font-bold text-green-600"><%= stats.mastered || 0 %></p>
+      <p class="text-gray-600 text-sm">Learned</p>
+      <p class="text-2xl font-bold text-green-600"><%= stats.learned || 0 %></p>
     </div>
     <div class="bg-white p-4 rounded-lg shadow">
       <p class="text-gray-600 text-sm">Learning</p>
@@ -52,7 +52,7 @@
     </div>
     <div class="bg-white p-4 rounded-lg shadow">
       <p class="text-gray-600 text-sm">New</p>
-      <p class="text-2xl font-bold text-blue-600"><%= flashcards.length - (stats.mastered || 0) - (stats.learning || 0) %></p>
+      <p class="text-2xl font-bold text-blue-600"><%= flashcards.length - (stats.learned || 0) %></p>
     </div>
   </div>
 

@@ -363,17 +363,37 @@ router.get('/:id/study', ensureAuthenticated, checkMFA, (req, res) => {
 
   const dueFlashcards = LearningProgress.getDueFlashcards(req.user.id, req.params.id);
   
-  // Fetch user notes for each flashcard
+  // Get ALL flashcards for stats calculation (not just due ones)
+  const allFlashcards = Set.getFlashcards(req.params.id);
+  
+  // Fetch user notes and learning progress for each flashcard
   const UserNote = require('../models/UserNote');
   dueFlashcards.forEach(card => {
     const note = UserNote.findByUserAndFlashcard(req.user.id, card.id);
     card.user_note = note ? note.note : null;
+    // Mark as has_progress if next_review_date exists (meaning learning_progress record exists)
+    card.has_progress = card.next_review_date !== null && card.next_review_date !== undefined;
+  });
+  
+  // Add progress info to all flashcards for accurate stats
+  allFlashcards.forEach(card => {
+    const progress = LearningProgress.findByUserAndFlashcard(req.user.id, card.id);
+    if (progress) {
+      card.has_progress = true;
+      card.consecutive_correct = progress.consecutive_correct || 0;
+      card.is_mastered = progress.is_mastered || 0;
+    } else {
+      card.has_progress = false;
+      card.consecutive_correct = 0;
+      card.is_mastered = 0;
+    }
   });
 
   res.render('study/session', {
     title: `Study: ${set.name}`,
     user: req.user,
     flashcards: dueFlashcards,
+    allFlashcards: allFlashcards, // Pass all flashcards for stats
     studyType: 'long_term',
     entityType: 'set',
     entityId: req.params.id
@@ -397,11 +417,24 @@ router.get('/:id/random', ensureAuthenticated, checkMFA, (req, res) => {
     flashcards = Set.getFlashcards(req.params.id);
   }
   
-  // Fetch user notes for each flashcard
+  // Fetch user notes and learning progress for each flashcard
   const UserNote = require('../models/UserNote');
   flashcards.forEach(card => {
     const note = UserNote.findByUserAndFlashcard(req.user.id, card.id);
     card.user_note = note ? note.note : null;
+    
+    // Get learning progress
+    const progress = LearningProgress.findByUserAndFlashcard(req.user.id, card.id);
+    if (progress) {
+      card.has_progress = true;
+      card.consecutive_correct = progress.consecutive_correct || 0;
+      card.next_review_date = progress.next_review_date;
+      card.is_mastered = progress.is_mastered || 0;
+    } else {
+      card.has_progress = false;
+      card.consecutive_correct = 0;
+      card.is_mastered = 0;
+    }
   });
 
   // Shuffle flashcards
