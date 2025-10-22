@@ -34,6 +34,331 @@
     .flashcard-back {
       transform: rotateY(180deg);
     }
+    
+    /* Gradient Icons & Buttons */
+    .gradient-icon {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3));
+      transition: all 0.3s ease;
+    }
+    
+    .gradient-icon:hover {
+      filter: drop-shadow(0 4px 8px rgba(102, 126, 234, 0.5));
+      transform: translateY(-2px);
+    }
+    
+    .gradient-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      transition: all 0.3s ease;
+    }
+    
+    .gradient-btn:hover {
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+      transform: translateY(-2px);
+    }
+    
+    .gradient-btn-red {
+      background: linear-gradient(135deg, #f56565 0%, #c53030 100%);
+      box-shadow: 0 4px 15px rgba(245, 101, 101, 0.4);
+      transition: all 0.3s ease;
+    }
+    
+    .gradient-btn-red:hover {
+      box-shadow: 0 6px 20px rgba(245, 101, 101, 0.6);
+      transform: translateY(-2px);
+    }
+    
+    .nav-icon {
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+    
+    .nav-icon:hover {
+      transform: scale(1.2) rotate(5deg);
+      filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3));
+    }
+    
+    /* Global Button Styles with Gradients & Shadows */
+    .btn-primary, 
+    button.bg-blue-500,
+    a.bg-blue-500,
+    button.bg-blue-600,
+    a.bg-blue-600,
+    input[type="submit"].bg-blue-500,
+    input[type="submit"].bg-blue-600 {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
+      transition: all 0.3s ease !important;
+      border: none !important;
+    }
+    
+    .btn-primary:hover,
+    button.bg-blue-500:hover,
+    a.bg-blue-500:hover,
+    button.bg-blue-600:hover,
+    a.bg-blue-600:hover,
+    input[type="submit"].bg-blue-500:hover,
+    input[type="submit"].bg-blue-600:hover {
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6) !important;
+      transform: translateY(-2px) !important;
+    }
+    
+    .btn-success,
+    button.bg-green-500,
+    a.bg-green-500,
+    button.bg-green-600,
+    a.bg-green-600 {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%) !important;
+      box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4) !important;
+      transition: all 0.3s ease !important;
+      border: none !important;
+    }
+    
+    .btn-success:hover,
+    button.bg-green-500:hover,
+    a.bg-green-500:hover,
+    button.bg-green-600:hover,
+    a.bg-green-600:hover {
+      box-shadow: 0 6px 20px rgba(72, 187, 120, 0.6) !important;
+      transform: translateY(-2px) !important;
+    }
+    
+    .btn-danger,
+    button.bg-red-500,
+    a.bg-red-500,
+    button.bg-red-600,
+    a.bg-red-600 {
+      background: linear-gradient(135deg, #f56565 0%, #c53030 100%) !important;
+      box-shadow: 0 4px 15px rgba(245, 101, 101, 0.4) !important;
+      transition: all 0.3s ease !important;
+      border: none !important;
+    }
+    
+    .btn-danger:hover,
+    button.bg-red-500:hover,
+    a.bg-red-500:hover,
+    button.bg-red-600:hover,
+    a.bg-red-600:hover {
+      box-shadow: 0 6px 20px rgba(245, 101, 101, 0.6) !important;
+      transform: translateY(-2px) !important;
+    }
+    
+    .btn-warning,
+    button.bg-yellow-500,
+    a.bg-yellow-500,
+    button.bg-yellow-600,
+    a.bg-yellow-600 {
+      background: linear-gradient(135deg, #ecc94b 0%, #d69e2e 100%) !important;
+      box-shadow: 0 4px 15px rgba(236, 201, 75, 0.4) !important;
+      transition: all 0.3s ease !important;
+      border: none !important;
+    }
+    
+    .btn-warning:hover,
+    button.bg-yellow-500:hover,
+    a.bg-yellow-500:hover,
+    button.bg-yellow-600:hover,
+    a.bg-yellow-600:hover {
+      box-shadow: 0 6px 20px rgba(236, 201, 75, 0.6) !important;
+      transform: translateY(-2px) !important;
+    }
+    
+    .btn-info,
+    button.bg-cyan-500,
+    a.bg-cyan-500,
+    button.bg-teal-500,
+    a.bg-teal-500 {
+      background: linear-gradient(135deg, #4fd1c5 0%, #38b2ac 100%) !important;
+      box-shadow: 0 4px 15px rgba(79, 209, 197, 0.4) !important;
+      transition: all 0.3s ease !important;
+      border: none !important;
+    }
+    
+    .btn-info:hover,
+    button.bg-cyan-500:hover,
+    a.bg-cyan-500:hover,
+    button.bg-teal-500:hover,
+    a.bg-teal-500:hover {
+      box-shadow: 0 6px 20px rgba(79, 209, 197, 0.6) !important;
+      transform: translateY(-2px) !important;
+    }
+    
+    .btn-purple,
+    button.bg-purple-500,
+    a.bg-purple-500,
+    button.bg-purple-600,
+    a.bg-purple-600 {
+      background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%) !important;
+      box-shadow: 0 4px 15px rgba(159, 122, 234, 0.4) !important;
+      transition: all 0.3s ease !important;
+      border: none !important;
+    }
+    
+    .btn-purple:hover,
+    button.bg-purple-500:hover,
+    a.bg-purple-500:hover,
+    button.bg-purple-600:hover,
+    a.bg-purple-600:hover {
+      box-shadow: 0 6px 20px rgba(159, 122, 234, 0.6) !important;
+      transform: translateY(-2px) !important;
+    }
+    
+    .btn-indigo,
+    button.bg-indigo-500,
+    a.bg-indigo-500,
+    button.bg-indigo-600,
+    a.bg-indigo-600 {
+      background: linear-gradient(135deg, #667eea 0%, #5a67d8 100%) !important;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
+      transition: all 0.3s ease !important;
+      border: none !important;
+    }
+    
+    .btn-indigo:hover,
+    button.bg-indigo-500:hover,
+    a.bg-indigo-500:hover,
+    button.bg-indigo-600:hover,
+    a.bg-indigo-600:hover {
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6) !important;
+      transform: translateY(-2px) !important;
+    }
+    
+    /* Gray Buttons with subtle shadow */
+    button.bg-gray-500,
+    a.bg-gray-500,
+    button.bg-gray-600,
+    a.bg-gray-600 {
+      box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3) !important;
+      transition: all 0.3s ease !important;
+    }
+    
+    button.bg-gray-500:hover,
+    a.bg-gray-500:hover,
+    button.bg-gray-600:hover,
+    a.bg-gray-600:hover {
+      box-shadow: 0 6px 20px rgba(107, 114, 128, 0.5) !important;
+      transform: translateY(-2px) !important;
+    }
+    
+    /* Icon Enhancements - All Icons */
+    i.fas, i.far, i.fab, i.fal {
+      transition: all 0.3s ease;
+    }
+    
+    /* Hover effects for clickable icons */
+    a i.fas, a i.far, button i.fas, button i.far,
+    .cursor-pointer i.fas, .cursor-pointer i.far {
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.1));
+    }
+    
+    a:hover i.fas, a:hover i.far, 
+    button:hover i.fas, button:hover i.far,
+    .cursor-pointer:hover i.fas, .cursor-pointer:hover i.far {
+      filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.2));
+      transform: scale(1.1);
+    }
+    
+    /* Specific icon color gradients */
+    .text-blue-500 i, .text-blue-600 i {
+      filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.3));
+    }
+    
+    .text-green-500 i, .text-green-600 i {
+      filter: drop-shadow(0 2px 4px rgba(34, 197, 94, 0.3));
+    }
+    
+    .text-red-500 i, .text-red-600 i {
+      filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.3));
+    }
+    
+    .text-yellow-500 i, .text-yellow-600 i {
+      filter: drop-shadow(0 2px 4px rgba(234, 179, 8, 0.3));
+    }
+    
+    .text-purple-500 i, .text-purple-600 i {
+      filter: drop-shadow(0 2px 4px rgba(168, 85, 247, 0.3));
+    }
+    
+    /* Cards with enhanced shadows */
+    .bg-white.shadow, .bg-white.shadow-lg, .bg-white.shadow-xl {
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+      transition: all 0.3s ease;
+    }
+    
+    .bg-white.shadow:hover, .bg-white.shadow-lg:hover {
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12) !important;
+      transform: translateY(-3px);
+    }
+    
+    /* Form inputs focus effect */
+    input:focus, textarea:focus, select:focus {
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2) !important;
+      border-color: #667eea !important;
+      outline: none !important;
+    }
+    
+    /* Badge/Chip styles with shadows */
+    .inline-flex.items-center {
+      transition: all 0.3s ease;
+    }
+    
+    .bg-blue-100, .bg-green-100, .bg-red-100, .bg-yellow-100, .bg-purple-100 {
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+    
+    /* Star icon special effect */
+    .fa-star {
+      transition: all 0.3s ease;
+    }
+    
+    /* Star button - Always top right corner */
+    .star-btn-corner {
+      position: absolute !important;
+      top: 0.75rem !important;
+      right: 0.75rem !important;
+      z-index: 30 !important;
+      font-size: 1.5rem !important;
+      padding: 0.25rem !important;
+      border: none !important;
+      background: transparent !important;
+      cursor: pointer !important;
+      transition: all 0.3s ease !important;
+      pointer-events: auto !important;
+    }
+    
+    /* Unstarred state - white/gray */
+    .star-btn-corner.unstarred {
+      color: #e5e7eb !important;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .star-btn-corner.unstarred:hover {
+      color: #fbbf24 !important;
+      transform: scale(1.15) !important;
+      text-shadow: 0 2px 4px rgba(251, 191, 36, 0.3) !important;
+    }
+    
+    /* Starred state - simple yellow */
+    .star-btn-corner.starred {
+      color: #fbbf24 !important;
+      text-shadow: 0 2px 4px rgba(251, 191, 36, 0.3) !important;
+    }
+    
+    .star-btn-corner.starred:hover {
+      transform: scale(1.15) !important;
+      text-shadow: 0 2px 6px rgba(251, 191, 36, 0.5) !important;
+    }
+    
+    /* Cards and flashcard containers need relative positioning for absolute star */
+    .flashcard-card-wrapper,
+    #flashcard-container {
+      position: relative !important;
+    }
   </style>
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
@@ -43,25 +368,25 @@
     <div class="container mx-auto px-4">
       <div class="flex justify-between items-center py-4">
         <div class="flex items-center space-x-4">
-          <a href="/dashboard" class="text-2xl font-bold text-blue-600">
-            <i class="fas fa-brain"></i> Qi
+          <a href="/dashboard" class="text-2xl font-bold">
+            <i class="fas fa-brain gradient-icon"></i> <span class="gradient-icon">Qi</span>
         </a>
           <div class="hidden md:flex space-x-4">
-            <a href="/dashboard" class="text-gray-700 hover:text-blue-600">
-              <i class="fas fa-home"></i> Dashboard
+            <a href="/dashboard" class="text-gray-700 hover:text-blue-600 transition">
+              <i class="fas fa-home nav-icon"></i> Dashboard
             </a>
-            <a href="/folders" class="text-gray-700 hover:text-blue-600">
-              <i class="fas fa-folder"></i> Folders
+            <a href="/folders" class="text-gray-700 hover:text-blue-600 transition">
+              <i class="fas fa-folder nav-icon"></i> Folders
             </a>
-            <a href="/sets" class="text-gray-700 hover:text-blue-600">
-              <i class="fas fa-layer-group"></i> Sets
+            <a href="/sets" class="text-gray-700 hover:text-blue-600 transition">
+              <i class="fas fa-layer-group nav-icon"></i> Sets
             </a>
-            <a href="/shares/my-shares" class="text-gray-700 hover:text-blue-600">
-              <i class="fas fa-handshake"></i> My Shares
+            <a href="/shares/my-shares" class="text-gray-700 hover:text-blue-600 transition">
+              <i class="fas fa-handshake nav-icon"></i> My Shares
             </a>
             <% if (user.is_admin) { %>
-            <a href="/admin" class="text-gray-700 hover:text-blue-600">
-              <i class="fas fa-user-shield"></i> Admin
+            <a href="/admin" class="text-gray-700 hover:text-blue-600 transition">
+              <i class="fas fa-user-shield nav-icon"></i> Admin
             </a>
             <% } %>
           </div>
@@ -69,17 +394,17 @@
         
         <div class="flex items-center space-x-2 md:space-x-4">
           <span class="hidden md:inline text-gray-700">
-            <i class="fas fa-user"></i> <%= user.username %>
+            <i class="fas fa-user nav-icon"></i> <%= user.username %>
           </span>
-          <a href="/auth/change-password" class="hidden md:inline text-gray-700 hover:text-blue-600">
-            <i class="fas fa-key"></i>
+          <a href="/auth/change-password" class="hidden md:inline text-gray-700 hover:text-blue-600 transition">
+            <i class="fas fa-key nav-icon"></i>
           </a>
-          <a href="/auth/logout" class="hidden md:inline bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+          <a href="/auth/logout" class="hidden md:inline gradient-btn-red text-white px-4 py-2 rounded-lg font-semibold">
             <i class="fas fa-sign-out-alt"></i> Logout
           </a>
           <!-- Mobile hamburger button -->
-          <button id="mobile-menu-button" class="md:hidden text-gray-700 hover:text-blue-600 p-2">
-            <i class="fas fa-bars text-2xl"></i>
+          <button id="mobile-menu-button" class="md:hidden text-gray-700 hover:text-blue-600 p-2 transition">
+            <i class="fas fa-bars text-2xl nav-icon"></i>
           </button>
         </div>
       </div>
@@ -87,31 +412,31 @@
       <!-- Mobile menu - Hidden by default -->
       <div id="mobile-menu" class="md:hidden pb-4 hidden">
         <div class="border-t pt-4">
-          <a href="/dashboard" class="block py-2 text-gray-700 hover:text-blue-600">
-            <i class="fas fa-home"></i> Dashboard
+          <a href="/dashboard" class="block py-2 text-gray-700 hover:text-blue-600 transition">
+            <i class="fas fa-home nav-icon"></i> Dashboard
           </a>
-          <a href="/folders" class="block py-2 text-gray-700 hover:text-blue-600">
-            <i class="fas fa-folder"></i> Folders
+          <a href="/folders" class="block py-2 text-gray-700 hover:text-blue-600 transition">
+            <i class="fas fa-folder nav-icon"></i> Folders
           </a>
-          <a href="/sets" class="block py-2 text-gray-700 hover:text-blue-600">
-            <i class="fas fa-layer-group"></i> Sets
+          <a href="/sets" class="block py-2 text-gray-700 hover:text-blue-600 transition">
+            <i class="fas fa-layer-group nav-icon"></i> Sets
           </a>
-          <a href="/shares/my-shares" class="block py-2 text-gray-700 hover:text-blue-600">
-            <i class="fas fa-handshake"></i> My Shares
+          <a href="/shares/my-shares" class="block py-2 text-gray-700 hover:text-blue-600 transition">
+            <i class="fas fa-handshake nav-icon"></i> My Shares
           </a>
           <% if (user.is_admin) { %>
-          <a href="/admin" class="block py-2 text-gray-700 hover:text-blue-600">
-            <i class="fas fa-user-shield"></i> Admin
+          <a href="/admin" class="block py-2 text-gray-700 hover:text-blue-600 transition">
+            <i class="fas fa-user-shield nav-icon"></i> Admin
           </a>
           <% } %>
           <div class="border-t mt-2 pt-2">
             <div class="py-2 text-gray-700">
-              <i class="fas fa-user"></i> <%= user.username %>
+              <i class="fas fa-user nav-icon"></i> <%= user.username %>
             </div>
-            <a href="/auth/change-password" class="block py-2 text-gray-700 hover:text-blue-600">
-              <i class="fas fa-key"></i> Change Password
+            <a href="/auth/change-password" class="block py-2 text-gray-700 hover:text-blue-600 transition">
+              <i class="fas fa-key nav-icon"></i> Change Password
             </a>
-            <a href="/auth/logout" class="block py-2 text-red-600 hover:text-red-700 font-semibold">
+            <a href="/auth/logout" class="block py-2 text-red-600 hover:text-red-700 font-semibold transition">
               <i class="fas fa-sign-out-alt"></i> Logout
             </a>
           </div>
