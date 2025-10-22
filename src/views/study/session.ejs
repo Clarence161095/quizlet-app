@@ -128,6 +128,16 @@
 
       <!-- Flashcard -->
       <div id="flashcard-container" class="mb-1 relative">
+        <!-- Star button - INSIDE flashcard container for proper positioning -->
+        <button 
+          onclick="toggleStar()" 
+          id="star-btn-top"
+          class="star-btn-corner unstarred"
+          title="Toggle Star"
+        >
+          <i class="fas fa-star"></i>
+        </button>
+        
         <div class="flashcard">
           <div class="flashcard-inner">
             <div class="flashcard-front bg-blue-50 border-2 border-blue-200 rounded-lg">
@@ -155,17 +165,6 @@
         </div>
       </div>
 
-      <!-- Star button - Positioned at top right corner of flashcard -->
-      <button 
-        onclick="toggleStar()" 
-        id="star-btn-top"
-        class="absolute top-4 right-4 z-10 text-gray-400 hover:text-yellow-500 transition text-3xl p-2 rounded-full hover:bg-white/50 backdrop-blur-sm"
-        title="Toggle Star"
-        style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);"
-      >
-        <i class="fas fa-star"></i>
-      </button>
-
       <!-- LEARN Button - Center positioned with gradient -->
       <div class="flex justify-center items-center mt-4" id="quick-actions">
         <button 
@@ -192,13 +191,22 @@
         </button>
       </div>
 
-      <!-- Answer Buttons (hidden in multi-choice mode) -->
+      <!-- Answer Buttons (for Flashcard mode in long_term study) -->
       <div id="answer-buttons-section">
         <% if (studyType === 'long_term') { %>
-          <div class="flex space-x-4">
+          <!-- Flashcard Mode: 4 buttons in a row (Prev | Incorrect | Correct | Next) -->
+          <div id="flashcard-buttons-wrapper" class="flex justify-center items-center gap-4">
+            <button 
+              onclick="previousCard()" 
+              id="flashcard-prev-btn"
+              class="bg-gray-500 text-white py-3 px-6 rounded-lg hover:bg-gray-600 transition font-semibold flex items-center gap-2"
+            >
+              <i class="fas fa-arrow-left"></i>
+              <span>Previous</span>
+            </button>
             <button 
               onclick="submitAnswer(false)" 
-              class="flex-1 bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition font-semibold flex items-center justify-center gap-2"
+              class="bg-red-500 text-white py-3 px-6 rounded-lg hover:bg-red-600 transition font-semibold flex items-center justify-center gap-2"
               id="incorrect-btn"
             >
               <i class="fas fa-times-circle"></i>
@@ -206,11 +214,19 @@
             </button>
             <button 
               onclick="submitAnswer(true)" 
-              class="flex-1 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition font-semibold flex items-center justify-center gap-2"
+              class="bg-green-500 text-white py-3 px-6 rounded-lg hover:bg-green-600 transition font-semibold flex items-center justify-center gap-2"
               id="correct-btn"
             >
               <i class="fas fa-check-circle"></i>
               <span>Correct</span>
+            </button>
+            <button 
+              onclick="nextCard()" 
+              id="flashcard-next-btn"
+              class="bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition font-semibold flex items-center gap-2"
+            >
+              <i class="fas fa-arrow-right"></i>
+              <span>Next</span>
             </button>
           </div>
         <% } else { %>
@@ -226,7 +242,7 @@
         <% } %>
       </div>
 
-      <!-- Navigation Buttons (includes Check Answer for multi-choice) -->
+      <!-- Navigation Buttons (for multi-choice mode) -->
       <div id="navigation-buttons" class="flex justify-center items-center gap-4 mt-4" style="display: none;">
         <button 
           onclick="previousCard()" 
@@ -490,7 +506,7 @@
       card.classList.add('border-transparent');
     });
 
-    // Filter flashcards
+    // Filter flashcards - GIỮ NGUYÊN THỨ TỰ GỐC (không random)
     switch(filterType) {
       case 'all':
         filteredFlashcards = [...flashcards];
@@ -559,10 +575,8 @@
       }
     }
     
-    // Apply random shuffle if random mode is ON
-    if (isRandomMode && studyType === 'long_term') {
-      shuffleArray(filteredFlashcards);
-    }
+    // KHÔNG RANDOM khi filter - giữ nguyên thứ tự gốc
+    // Random chỉ áp dụng khi khởi tạo ở chế độ random study
     
     // Only execute if we have cards
     currentIndex = 0;
@@ -713,6 +727,12 @@
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     
+    // Get flashcard mode buttons
+    const flashcardPrevBtn = document.getElementById('flashcard-prev-btn');
+    const flashcardNextBtn = document.getElementById('flashcard-next-btn');
+    const incorrectBtn = document.getElementById('incorrect-btn');
+    const correctBtn = document.getElementById('correct-btn');
+    
     if (isMultiChoice) {
       // Multi-choice mode: Hide answer buttons, show navigation with Check Answer
       answerButtonsSection.style.display = 'none';
@@ -724,10 +744,16 @@
       if (prevBtn) prevBtn.style.display = 'block';
       if (nextBtn) nextBtn.style.display = 'block';
     } else {
-      // Flashcard mode: Show answer buttons, hide navigation
+      // Flashcard mode: Show answer buttons (4 buttons layout), hide multi-choice navigation
       answerButtonsSection.style.display = 'block';
       navigationButtons.style.display = 'none';
       if (mcCheckBtn) mcCheckBtn.style.display = 'none';
+      
+      // Ensure all flashcard buttons are visible
+      if (flashcardPrevBtn) flashcardPrevBtn.style.display = 'flex';
+      if (incorrectBtn) incorrectBtn.style.display = 'flex';
+      if (correctBtn) correctBtn.style.display = 'flex';
+      if (flashcardNextBtn) flashcardNextBtn.style.display = 'flex';
     }
     
     // Important: Reset flip state BEFORE updating content
@@ -767,9 +793,11 @@
       const starBtn = document.getElementById('star-btn-top');
       if (starBtn) {
         if (card.is_starred) {
-          starBtn.innerHTML = '<i class="fas fa-star text-yellow-500"></i>';
+          starBtn.className = 'star-btn-corner starred';
+          starBtn.innerHTML = '<i class="fas fa-star"></i>';
         } else {
-          starBtn.innerHTML = '<i class="far fa-star"></i>';
+          starBtn.className = 'star-btn-corner unstarred';
+          starBtn.innerHTML = '<i class="fas fa-star"></i>';
         }
       }
 
@@ -1042,13 +1070,28 @@
   }
 
   function submitAnswer(isCorrect) {
-    // Hide answer buttons, show navigation
-    document.getElementById('answer-buttons-section').style.display = 'none';
-    document.getElementById('navigation-buttons').style.display = 'flex';
-    updateNavigationButtons();
+    // Visual feedback: Flash the button
+    const btnId = isCorrect ? 'correct-btn' : 'incorrect-btn';
+    const btn = document.getElementById(btnId);
+    
+    if (btn) {
+      // Add flash effect
+      btn.style.transform = 'scale(0.95)';
+      btn.style.opacity = '0.7';
+      
+      setTimeout(() => {
+        btn.style.transform = 'scale(1)';
+        btn.style.opacity = '1';
+      }, 150);
+    }
     
     // Submit to server
     submitAnswerToServer(isCorrect);
+    
+    // Automatically move to next card after brief delay
+    setTimeout(() => {
+      nextCard();
+    }, 400); // Delay for visual feedback
   }
 
   function submitAnswerToServer(isCorrect) {
@@ -1095,52 +1138,111 @@
   }
 
   function updateNavigationButtons() {
+    // For multi-choice mode (separate navigation buttons)
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
+    
+    // For flashcard mode (integrated navigation buttons)
+    const flashcardPrevBtn = document.getElementById('flashcard-prev-btn');
+    const flashcardNextBtn = document.getElementById('flashcard-next-btn');
     
     const isFirst = currentIndex === 0;
     const isLast = currentIndex >= filteredFlashcards.length - 1;
     
+    // Multi-choice navigation buttons
     if (prevBtn) {
       prevBtn.style.display = isFirst ? 'none' : 'block';
     }
-    
     if (nextBtn) {
       nextBtn.style.display = isLast ? 'none' : 'block';
+    }
+    
+    // Flashcard navigation buttons
+    if (flashcardPrevBtn) {
+      flashcardPrevBtn.style.display = isFirst ? 'none' : 'flex';
+    }
+    if (flashcardNextBtn) {
+      flashcardNextBtn.style.display = isLast ? 'none' : 'flex';
     }
   }
 
   function toggleStar() {
     const card = filteredFlashcards[currentIndex];
+    const currentCardId = card.id; // Lưu lại ID của card hiện tại
+    
+    // Visual feedback: Animate star button
+    const starBtn = document.getElementById('star-btn-top');
+    if (starBtn) {
+      starBtn.style.transform = 'scale(1.2)';
+      setTimeout(() => {
+        starBtn.style.transform = 'scale(1)';
+      }, 200);
+    }
 
     fetch(`/flashcards/${card.id}/toggle-star`, {
       method: 'POST'
     })
     .then(response => response.json())
     .then(data => {
-      // Toggle star state in both arrays
+      // Toggle star state in both arrays (convert to number for consistency)
+      const newStarState = card.is_starred ? 0 : 1;
+      
       const originalCard = flashcards.find(c => c.id === card.id);
       if (originalCard) {
-        originalCard.is_starred = originalCard.is_starred ? 0 : 1;
+        originalCard.is_starred = newStarState;
       }
-      card.is_starred = card.is_starred ? 0 : 1;
+      card.is_starred = newStarState;
       
+      // Update all cards in filteredFlashcards that match this ID
+      filteredFlashcards.forEach(c => {
+        if (c.id === card.id) {
+          c.is_starred = newStarState;
+        }
+      });
+      
+      // Update button UI immediately
       const starBtn = document.getElementById('star-btn-top');
       if (starBtn) {
-        if (card.is_starred) {
-          starBtn.innerHTML = '<i class="fas fa-star text-yellow-500"></i>';
+        if (newStarState) {
+          starBtn.className = 'star-btn-corner starred';
+          starBtn.innerHTML = '<i class="fas fa-star"></i>';
         } else {
-          starBtn.innerHTML = '<i class="far fa-star"></i>';
+          starBtn.className = 'star-btn-corner unstarred';
+          starBtn.innerHTML = '<i class="fas fa-star"></i>';
         }
       }
       
-      // Update stats
+      // Update stats để hiển thị số liệu mới
       updateStats();
       
-      // If filtering by starred, re-apply filter
+      // Nếu đang filter by starred, cần re-filter để cập nhật danh sách
       if (currentFilter === 'starred') {
-        filterCards('starred');
+        // Re-filter starred cards
+        filteredFlashcards = flashcards.filter(c => c.is_starred);
+        
+        // Update total filtered count
+        const totalFilteredEl = document.getElementById('total-filtered');
+        if (totalFilteredEl) {
+          totalFilteredEl.textContent = filteredFlashcards.length;
+        }
+        
+        // Nếu card hiện tại bị unstar và đang ở starred filter
+        if (!card.is_starred) {
+          // Card bị remove khỏi filter
+          if (filteredFlashcards.length === 0) {
+            // Không còn starred card nào, chuyển sang filter khác
+            filterCards('all');
+          } else {
+            // Vẫn còn starred cards, load card tiếp theo hoặc card trước
+            if (currentIndex >= filteredFlashcards.length) {
+              currentIndex = filteredFlashcards.length - 1;
+            }
+            loadCard(currentIndex);
+          }
+        }
+        // Nếu card được star thì không cần làm gì (vẫn ở trong filter)
       }
+      // Với các filter khác, card vẫn nằm trong filter nên không cần re-filter
     })
     .catch(error => console.error('Error:', error));
   }
@@ -1824,6 +1926,55 @@
     transition: all 0.3s ease;
   }
   
+  /* Star Button - Fixed position in top-right corner of flashcard */
+  .star-btn-corner {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 10;
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    background: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .star-btn-corner.unstarred {
+    color: #d1d5db;
+    border-color: #e5e7eb;
+  }
+  
+  .star-btn-corner.unstarred:hover {
+    color: #fbbf24;
+    border-color: #fbbf24;
+    background: rgba(251, 191, 36, 0.1);
+    transform: scale(1.1);
+  }
+  
+  .star-btn-corner.starred {
+    color: #fbbf24;
+    border-color: #fbbf24;
+    background: rgba(251, 191, 36, 0.15);
+  }
+  
+  .star-btn-corner.starred:hover {
+    color: #f59e0b;
+    border-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.2);
+    transform: scale(1.1);
+  }
+  
+  .star-btn-corner:active {
+    transform: scale(0.95);
+  }
+  
   #star-btn-top {
     transition: all 0.2s ease;
   }
@@ -1838,6 +1989,14 @@
   }
   
   @media (min-width: 768px) {
+    .star-btn-corner {
+      width: 3.5rem;
+      height: 3.5rem;
+      font-size: 1.75rem;
+      top: 1rem;
+      right: 1rem;
+    }
+    
     #star-btn-top {
       font-size: 2rem !important;
       padding: 0.75rem 1rem !important;
@@ -2005,7 +2164,13 @@
   /* Hide old star button reference (if any) in focus mode */
   body.focus-mode-active #star-btn,
   body.focus-mode-active #star-btn-top {
-    display: none !important;
+    /* Keep star button visible in focus mode, but smaller */
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+    font-size: 1.25rem !important;
+    top: 0.5rem !important;
+    right: 0.5rem !important;
+    z-index: 60 !important; /* Above other elements */
   }
   
   /* Hide focus section in focus mode */
@@ -2140,13 +2305,33 @@
     margin: 0 !important;
   }
   
+  body.focus-mode-active #flashcard-buttons-wrapper {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+  }
+  
   body.focus-mode-active #answer-buttons-section button {
-    font-size: clamp(0.875rem, 2.5vw, 1rem) !important;
-    padding: 0.625rem 0.875rem !important; /* Giảm padding button */
+    font-size: clamp(0.75rem, 2vw, 0.875rem) !important;
+    padding: 0.5rem 0.75rem !important; /* Giảm padding button để fit 4 buttons */
     font-weight: 600 !important;
+    flex: 1 !important; /* Equal width for all buttons */
+    max-width: 25% !important; /* Prevent buttons from being too wide */
+  }
+  
+  /* Hide text on very small screens, show icons only */
+  @media (max-width: 380px) {
+    body.focus-mode-active #answer-buttons-section button span {
+      display: none;
+    }
+    body.focus-mode-active #answer-buttons-section button {
+      padding: 0.625rem !important;
+    }
   }
 
-  /* Navigation buttons in Focus Mode - Always visible */
+  /* Navigation buttons in Focus Mode - Only for multi-choice */
   body.focus-mode-active #navigation-buttons {
     position: fixed !important;
     bottom: 0 !important;
@@ -2158,7 +2343,7 @@
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
     z-index: 50 !important;
     margin: 0 !important;
-    display: flex !important; /* Luôn hiển thị */
+    /* REMOVED: display: flex !important - Let JavaScript control visibility */
     opacity: 1 !important;
   }
 
@@ -2364,14 +2549,20 @@
       transform: translateX(-50%) !important;
     }
     
+    body.focus-mode-active #flashcard-buttons-wrapper {
+      gap: 1rem !important;
+    }
+    
     body.focus-mode-active #answer-buttons-section button {
-      font-size: 1.125rem !important;
-      padding: 1rem 2rem !important;
+      font-size: 1rem !important;
+      padding: 0.875rem 1.5rem !important;
+      flex: 0 1 auto !important; /* Don't force equal width on desktop */
+      max-width: none !important;
     }
 
-    /* Navigation buttons on desktop - Always show */
+    /* Navigation buttons on desktop - Only for multi-choice */
     body.focus-mode-active #navigation-buttons {
-      display: flex !important;
+      /* REMOVED: display: flex !important - Let JavaScript control visibility */
       opacity: 1 !important;
       padding: 1rem 2rem !important;
       max-width: 1200px !important;
