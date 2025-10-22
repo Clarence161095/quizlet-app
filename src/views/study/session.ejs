@@ -927,7 +927,7 @@
       option.classList.remove('selected');
     });
     
-    // Update check button to show result
+    // Update check button to show result (keep visible, just disable)
     const mcCheckBtn = document.getElementById('mc-check-answer-btn');
     if (mcCheckBtn) {
       mcCheckBtn.disabled = true;
@@ -936,14 +936,7 @@
       mcCheckBtn.innerHTML = isCorrect ? 
         '<i class="fas fa-check-circle"></i> Correct!' : 
         '<i class="fas fa-times-circle"></i> Incorrect';
-      
-      // Only hide check button if answer is correct
-      // Keep it visible if incorrect so user can review
-      if (isCorrect) {
-        setTimeout(() => {
-          mcCheckBtn.style.display = 'none';
-        }, 1500);
-      }
+      // Keep button visible (disabled), don't hide it
     }
     
     // Submit answer to server if long-term study
