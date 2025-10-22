@@ -1,0 +1,72 @@
+Tôi muốn tạo một Webapp chạy on-permiss trên docker sau này tôi sẽ deploy lên server ec2 free tier của aws.
+
+1. Mục tiêu của webapp:
+- Ứng dụng giống như ứng dụng Quizlet cho phép người dùng CRUD flashcards và tạo các bộ flashcards để học tập.
+- Quản lý quá trình học tập theo mô hình trí nhớ. Ví dụ: Từ được học sẽ xuất hiện lại sau 1 ngày, 3 ngày, 7 ngày, 15 ngày, 30 ngày, 2 tháng, 3 tháng tùy theo mức độ ghi nhớ của người dùng. Nó sẽ được đánh dấu là đã học hay chưa học. Nếu sau 7 lần liên tục người dùng trả lời đúng thì sẽ được đánh dấu là đã nhớ ko phải là sẽ ko xuất hiện nữa mà trọng số xuất hiện sẽ thấp hơn ưu tiên các từ chưa nhớ hoặc mới học. Cái này gọi là chức năng học dài hạn.
+- Tất nhiên app vẫn có chức năng đánh dấu sao cho flashcards yêu thích. Và Random flashcards để ôn tập nhanh các flashcards đã đánh dấu sao. Hoặc Random all.
+- App có chức năng import và export flashcards dưới dạng text như quizlet cho phép người dụng nhập các ký tự đặc biệt để phân tách giữa từ và nghĩa, giữa các flashcards với nhau. Giống app Quizlet. Ví dụ: Từ  Nghĩa \t Từ Nghĩa \n -> Dấu cách hoặc tab để phân tách từ và nghĩa, xuống dòng để phân tách các flashcards. \t hay \n người dùng có thể tùy chọn mặc định sẽ là tab và xuống dòng nhưng có sẵn 2 input text để người dùng tùy chỉnh ký tự phân tách và có phần preview trước khi import.
+- App có chép quản lý các flash card theo bộ và có thế lưu nó vào các folder để dễ quản lý và các bộ (set) trong 1 folder thì folder tượng tự như một set lớn hơn chứa các set con bên trong nên có chức năng y hệt các set cũng có chức năng học dài hạn, random all... giống set bình thường.
+- Giao diện thì dùng bootstrap hoặc tailwind css cho nhanh, ưu tiên giao diện đơn giản, dễ dùng, responsive. Và là Mobile First. Vì tôi sẽ ưu tiên người dùng trên điện thoại.
+- App hiện tại hướng tới người dùng cá nhân, vẫn có chức năng đăng ký, đăng nhập nhưng không cần quá phức tạp. Vì app hiện có từ 2-10 người dùng thôi. Nên đăng ký và năng nhập đơn giản và được phê duyệt bới admin qua trang admin. Có chức năng MFA bằng code thông qua các app như google authenticator hoặc microsoft authenticator đơn giản ko cần mail xác nhận phức tạp chỉ cần MFA cho tài khoan admin là được. Mặc định tài amdin ban đầu là amdmin/admin123 sau đó admin có thể đổi pass và bắt buộc MFA cho lần đầu tiên đăng nhập và đổi pass, quên pass cũng bắt MFA. Người dùng cũng sẽ được tạo từ trang admin đơn giản không cần đăng ký phức tạp sau đó tôi sẽ gửi pass và user cho người dùng qua tin nhắn và họ sẽ tự đổi pass hoặc thêm MFA nếu muốn.
+- Flashcard cũng sẽ được lưu vào DB đơn giản như sqlite để dễ dàng deploy tôi ưu nhẹ nhàng trên server ec2 free tier.
+- Flashcard sẽ hỗ trợ chức năng test mutiple choice trắc nghiệm. Tôi sẽ input theo format markdown kết hợp ký tự đặc biệt để phân tách câu hỏi và các đáp án. Ví dụ:
+```
+Word: (Tôi sẽ nhập vào input text word)
+
+Thủ đô của Việt Nam là gì?
+A. Hà Nội
+B. Hồ Chí Minh
+C. Đà Nẵng
+D. Huế
+
+Definitions: (Tôi sẽ nhập vào input text definitions)
+A
+
+Có thêm một input text note hỗ trợ markown để tôi có thể ghi chú thêm cho flashcard nếu cần... Cái này là theo use mỗi use sẽ note khác nhau, nhưng note này chỉ lưu cho riêng user đó thôi ko chia sẻ chung.
+
+-------
+
+Word: (I will input in the word text input)
+
+Những cái nào là dụng cụ nhà bếp?
+A. Dao
+B. Bàn chải đánh răng
+C. Nồi
+D. Tivi
+
+Definitions: (I will input in the definitions text input)
+A, C
+
+Đây sẽ là mutiple choice trắc nghiệm.
+
+
+-----
+
+Word: (I will input in the word text input)
+
+Động vật là gì?
+
+Definitions: (I will input in the definitions text input)
+
+Là sinh vật sống biết di chuyển và phản ứng với môi trường xung quanh.
+
+Đây sẽ là flashcard bình thường không có trắc nghiệm.
+
+
+----....
+
+----
+```
+
+Nó sẽ giống 1 app quizlet nhưng extend chức năng thêm note cho các flashcard và có thể có flashcard trắc nghiệm mutiple choice. Còn lại chức năng giống y hệt quizlet. À tất nhiên việc học dài hạn cũng áp dụng cho cả flashcard trắc nghiệm mutiple choice luôn... Hãy cố gắng tạp app thật là perfect.
+
+2. Công nghệ sử dụng:
+- Đầu tiên tôi muốn tạo một App MVP (Minimum Viable Product) trước tuy nhiên nó phải hoạt đông ổn định như một product dưới 10 người trước để tôi test và phát triển trong tương lai. Vì vậy công nghệ ưu tiên sử dụng đơn giản và nhanh nhất để phát triển app này sao cho nhanh và hiểu quả nhất có thể chạy mượt mà và nhẹ nhàng trên server ec2 free tier. Có thể sử dụng Monolithic app để dễ deploy trước đã ngôn ngữ ưu tiên sử dụng là JS với Nodejs.
+- Vì app này phải nhẹ nhàng và dễ deploy trên server ec2 free tier nên tôi ưu tiên sử dụng sqlite làm database. Ko dùng docker để tránh nặng nề.
+- Ko có backend frontend mà là Monolithic app luôn. Sử dụng Expressjs cho backend và ejs với taiwindcss cho các route frontend.
+- Sử dụng passportjs để quản lý đăng nhập đơn giản.
+- Sử dụng các thư viện hỗ trợ khác nếu cần thiết nhưng ưu tiên nhẹ nhàng nhất có thể.
+- App đơn giản chỉ có dùng nodejs và sqlite để dễ deploy trên server ec2 free tier. Tôi sẽ chỉ npm install và npm run start để chạy app thôi.
+
+
+- Mục tiêu là cuối cùng tôi sẽ run 1 shell duy nhất là boot.sh để chạy app trên server ec2 free tier. Nên tôi cần bạn giúp tôi tạo 1 file boot.sh để chạy app này trên server ec2 free tier trên máy ec2 free tier của aws tôi chỉ có cài nodejs mà thôi.

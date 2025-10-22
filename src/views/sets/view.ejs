@@ -1,0 +1,149 @@
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex justify-between items-start">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">
+          <i class="fas fa-layer-group text-blue-600"></i> <%= set.name %>
+        </h1>
+        <% if (set.description) { %>
+          <p class="text-gray-600"><%= set.description %></p>
+        <% } %>
+      </div>
+      <div class="flex space-x-2">
+        <a href="/sets/<%= set.id %>/edit" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
+          <i class="fas fa-edit"></i> Edit
+        </a>
+        <form action="/sets/<%= set.id %>/delete" method="POST" onsubmit="return confirm('Delete this set and all flashcards?');" class="inline">
+          <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+            <i class="fas fa-trash"></i> Delete
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white p-4 rounded-lg shadow">
+      <p class="text-gray-600 text-sm">Total Cards</p>
+      <p class="text-2xl font-bold text-gray-800"><%= flashcards.length %></p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow">
+      <p class="text-gray-600 text-sm">Mastered</p>
+      <p class="text-2xl font-bold text-green-600"><%= stats.mastered || 0 %></p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow">
+      <p class="text-gray-600 text-sm">Learning</p>
+      <p class="text-2xl font-bold text-yellow-600"><%= stats.learning || 0 %></p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow">
+      <p class="text-gray-600 text-sm">New</p>
+      <p class="text-2xl font-bold text-blue-600"><%= flashcards.length - (stats.mastered || 0) - (stats.learning || 0) %></p>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="bg-white p-6 rounded-lg shadow mb-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">
+      <i class="fas fa-bolt text-yellow-500"></i> Study Options
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <a href="/sets/<%= set.id %>/study" class="bg-blue-500 text-white px-4 py-3 rounded-lg hover:bg-blue-600 transition text-center">
+        <i class="fas fa-brain"></i> Long-term Learning
+      </a>
+      <a href="/sets/<%= set.id %>/random?type=all" class="bg-green-500 text-white px-4 py-3 rounded-lg hover:bg-green-600 transition text-center">
+        <i class="fas fa-random"></i> Random All
+      </a>
+      <a href="/sets/<%= set.id %>/random?type=starred" class="bg-purple-500 text-white px-4 py-3 rounded-lg hover:bg-purple-600 transition text-center">
+        <i class="fas fa-star"></i> Random Starred
+      </a>
+      <a href="/sets/<%= set.id %>/import" class="bg-indigo-500 text-white px-4 py-3 rounded-lg hover:bg-indigo-600 transition text-center">
+        <i class="fas fa-file-import"></i> Import Cards
+      </a>
+    </div>
+  </div>
+
+  <!-- Flashcards -->
+  <div class="bg-white p-6 rounded-lg shadow">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-gray-800">
+        <i class="fas fa-cards text-blue-500"></i> Flashcards (<%= flashcards.length %>)
+      </h2>
+      <div class="flex space-x-2">
+        <a href="/sets/<%= set.id %>/export?termSep=tab&cardSep=newline" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 text-sm">
+          <i class="fas fa-download"></i> Export
+        </a>
+        <a href="/flashcards/create/<%= set.id %>" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+          <i class="fas fa-plus"></i> Add Card
+        </a>
+      </div>
+    </div>
+
+    <% if (flashcards.length === 0) { %>
+      <div class="text-center py-12 text-gray-500">
+        <i class="fas fa-inbox text-4xl mb-4"></i>
+        <p class="mb-4">No flashcards yet. Add your first card!</p>
+        <div class="space-x-4">
+          <a href="/flashcards/create/<%= set.id %>" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+            <i class="fas fa-plus"></i> Create Flashcard
+          </a>
+          <a href="/sets/<%= set.id %>/import" class="inline-block bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+            <i class="fas fa-file-import"></i> Import from Text
+          </a>
+        </div>
+      </div>
+    <% } else { %>
+      <div class="space-y-3">
+        <% flashcards.forEach((card, index) => { %>
+          <div class="border rounded-lg p-4 hover:bg-gray-50 transition">
+            <div class="flex items-start justify-between">
+              <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p class="text-xs text-gray-500 mb-1">TERM</p>
+                  <p class="font-semibold text-gray-800"><%= card.word %></p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 mb-1">DEFINITION</p>
+                  <p class="text-gray-700"><%= card.definition %></p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2 ml-4">
+                <button 
+                  onclick="toggleStar(<%= card.id %>, this)"
+                  class="text-2xl transition <%= card.is_starred ? 'text-yellow-500' : 'text-gray-300' %> hover:text-yellow-500"
+                >
+                  <i class="fas fa-star"></i>
+                </button>
+                <a href="/flashcards/<%= card.id %>/edit" class="text-blue-600 hover:text-blue-700">
+                  <i class="fas fa-edit"></i>
+                </a>
+                <form action="/flashcards/<%= card.id %>/delete" method="POST" onsubmit="return confirm('Delete this flashcard?');" class="inline">
+                  <button type="submit" class="text-red-600 hover:text-red-700">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+  function toggleStar(cardId, btn) {
+    fetch(`/flashcards/${cardId}/toggle-star`, {
+      method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        btn.classList.toggle('text-yellow-500');
+        btn.classList.toggle('text-gray-300');
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  }
+</script>

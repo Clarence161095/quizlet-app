@@ -1,0 +1,79 @@
+<div class="max-w-2xl mx-auto">
+  <div class="bg-white p-8 rounded-lg shadow">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">
+      <i class="fas fa-plus-circle text-blue-600"></i> Create New Set
+    </h1>
+
+    <form action="/sets/create" method="POST">
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-2 font-semibold" for="name">
+          Set Name <span class="text-red-500">*</span>
+        </label>
+        <input 
+          type="text" 
+          id="name"
+          name="name" 
+          required
+          class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="E.g., English Vocabulary - Unit 1"
+        >
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-2 font-semibold" for="description">
+          Description
+        </label>
+        <textarea 
+          id="description"
+          name="description" 
+          rows="3"
+          class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Optional description for this set"
+        ></textarea>
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-gray-700 mb-2 font-semibold" for="folder_id">
+          Folder (Optional)
+        </label>
+        <select 
+          id="folder_id"
+          name="folder_id"
+          class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">-- No Folder --</option>
+          <% folders.forEach(folder => { %>
+            <option value="<%= folder.id %>"><%= folder.name %></option>
+          <% }); %>
+        </select>
+        <p class="text-sm text-gray-500 mt-1">
+          <i class="fas fa-info-circle"></i> Organize sets into folders for better management
+        </p>
+      </div>
+
+      <div class="flex space-x-4">
+        <button 
+          type="submit"
+          class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
+        >
+          <i class="fas fa-save"></i> Create Set
+        </button>
+        <a 
+          href="/sets" 
+          class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition"
+        >
+          <i class="fas fa-times"></i> Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+    <h3 class="font-semibold text-blue-800 mb-2">
+      <i class="fas fa-lightbulb"></i> What's next?
+    </h3>
+    <p class="text-sm text-blue-700">
+      After creating a set, you can add flashcards manually or import them from text.
+    </p>
+  </div>
+</div>

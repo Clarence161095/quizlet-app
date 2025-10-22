@@ -1,0 +1,407 @@
+<div class="max-w-4xl mx-auto">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">
+      <i class="fas fa-brain text-blue-600"></i> <%= title %>
+    </h1>
+    <p class="text-gray-600">
+      <% if (studyType === 'long_term') { %>
+        Long-term learning with spaced repetition
+      <% } else if (studyType === 'random_all') { %>
+        Random practice - All cards
+      <% } else { %>
+        Random practice - Starred cards only
+      <% } %>
+    </p>
+  </div>
+
+  <% if (!flashcards || flashcards.length === 0) { %>
+    <!-- No flashcards -->
+    <div class="bg-white p-12 rounded-lg shadow text-center">
+      <i class="fas fa-check-circle text-6xl text-green-500 mb-4"></i>
+      <h2 class="text-2xl font-bold text-gray-800 mb-2">All done!</h2>
+      <p class="text-gray-600 mb-6">
+        <% if (studyType === 'long_term') { %>
+          No cards due for review right now. Come back later!
+        <% } else { %>
+          No flashcards available for this study mode.
+        <% } %>
+      </p>
+      <a href="/dashboard" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+        <i class="fas fa-home"></i> Back to Dashboard
+      </a>
+    </div>
+  <% } else { %>
+    <!-- Study Interface -->
+    <div class="bg-white rounded-lg shadow p-6 mb-4">
+      <!-- Progress Bar -->
+      <div class="mb-6">
+        <div class="flex justify-between text-sm text-gray-600 mb-2">
+          <span>Progress</span>
+          <span><span id="current-card">1</span> / <%= flashcards.length %></span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+          <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all" style="width: <%= (1/flashcards.length)*100 %>%"></div>
+        </div>
+      </div>
+
+      <!-- Flashcard -->
+            <!-- Flashcard -->
+      <div id="flashcard-container" class="mb-6" style="min-height: 350px;">
+        <div class="flashcard">
+          <div class="flashcard-inner">
+            <div class="flashcard-front bg-blue-50 border-2 border-blue-200 rounded-lg">
+              <div class="text-center w-full p-8">
+                <p class="text-sm text-gray-500 mb-4">
+                  <i class="fas fa-sync-alt"></i> Click to flip
+                </p>
+                <div id="word-content" class="text-2xl font-semibold text-gray-800">
+                  Loading...
+                </div>
+              </div>
+            </div>
+            
+            <div class="flashcard-back bg-green-50 border-2 border-green-200 rounded-lg">
+              <div class="text-center w-full p-8">
+                <p class="text-sm text-gray-500 mb-4">
+                  <i class="fas fa-sync-alt"></i> Click to flip
+                </p>
+                <div id="definition-content" class="text-xl text-gray-800">
+                  Loading...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Note Button -->
+      <div class="mb-4 text-center">
+        <button 
+          onclick="showNoteDialog()" 
+          id="note-btn"
+          class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-4 py-2 rounded-lg transition"
+          style="display: none;"
+        >
+          <i class="fas fa-sticky-note"></i> View Note
+        </button>
+      </div>
+
+      <!-- Answer Buttons (for long-term learning) -->
+      <% if (studyType === 'long_term') { %>
+        <div class="flex space-x-4">
+          <button 
+            onclick="submitAnswer(false)" 
+            class="flex-1 bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition font-semibold"
+            id="incorrect-btn"
+          >
+            <i class="fas fa-times-circle"></i> Incorrect
+          </button>
+          <button 
+            onclick="submitAnswer(true)" 
+            class="flex-1 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition font-semibold"
+            id="correct-btn"
+          >
+            <i class="fas fa-check-circle"></i> Correct
+          </button>
+        </div>
+      <% } else { %>
+        <div class="flex space-x-4">
+          <button 
+            onclick="nextCard()" 
+            class="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition font-semibold"
+          >
+            <i class="fas fa-arrow-right"></i> Next Card
+          </button>
+        </div>
+      <% } %>
+
+      <!-- Star Toggle -->
+      <div class="mt-4 text-center">
+        <button 
+          onclick="toggleStar()" 
+          id="star-btn"
+          class="text-gray-400 hover:text-yellow-500 transition text-2xl"
+        >
+          <i class="fas fa-star"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Card Info -->
+    <div class="bg-gray-50 p-4 rounded-lg text-sm text-gray-600">
+      <div class="flex justify-between">
+        <span>
+          <i class="fas fa-keyboard"></i> 
+          <strong>Shortcuts:</strong> Space to flip, ← for Incorrect, → for Correct
+        </span>
+        <span id="card-info"></span>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<!-- Note Dialog Modal -->
+<div id="noteDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;" onclick="closeNoteDialog()">
+  <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6" onclick="event.stopPropagation()">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-bold text-gray-800">
+        <i class="fas fa-sticky-note text-yellow-500"></i> Your Note
+      </h3>
+      <button onclick="closeNoteDialog()" class="text-gray-400 hover:text-gray-600">
+        <i class="fas fa-times text-2xl"></i>
+      </button>
+    </div>
+    <div id="dialog-note-content" class="prose prose-sm max-w-none text-gray-700 bg-yellow-50 p-4 rounded border border-yellow-200">
+      <!-- Note content will be inserted here -->
+    </div>
+  </div>
+</div>
+
+<script>
+  const flashcards = <%- JSON.stringify(flashcards || []) %>;
+  const studyType = '<%= studyType %>';
+  let currentIndex = 0;
+  let isFlipped = false;
+  let currentNote = null;
+
+  function loadCard(index) {
+    if (index >= flashcards.length) {
+      showCompletion();
+      return;
+    }
+
+    const card = flashcards[index];
+    currentIndex = index;
+    
+    // Important: Reset flip state BEFORE updating content
+    const flashcardElement = document.querySelector('.flashcard');
+    flashcardElement.classList.remove('flipped');
+    isFlipped = false;
+
+    // Small delay to ensure DOM is ready
+    setTimeout(() => {
+      // Update content
+      document.getElementById('word-content').innerHTML = formatContent(card.word);
+      document.getElementById('definition-content').innerHTML = formatContent(card.definition);
+
+      // Update progress
+      document.getElementById('current-card').textContent = index + 1;
+      const progress = ((index + 1) / flashcards.length) * 100;
+      document.getElementById('progress-bar').style.width = progress + '%';
+
+      // Update star button
+      const starBtn = document.getElementById('star-btn');
+      if (card.is_starred) {
+        starBtn.innerHTML = '<i class="fas fa-star text-yellow-500"></i>';
+      } else {
+        starBtn.innerHTML = '<i class="far fa-star"></i>';
+      }
+
+      // Handle note button
+      currentNote = card.user_note || null;
+      const noteBtn = document.getElementById('note-btn');
+      if (currentNote) {
+        noteBtn.style.display = 'inline-block';
+      } else {
+        noteBtn.style.display = 'none';
+      }
+
+      // Update card info
+      if (card.consecutive_correct !== undefined) {
+        document.getElementById('card-info').textContent = 
+          `Streak: ${card.consecutive_correct || 0} | ${card.is_mastered ? 'Mastered ✓' : 'Learning'}`;
+      }
+    }, 50);
+  }
+
+  function formatContent(content) {
+    // Basic formatting for multiple choice questions
+    if (content.includes('\nA.') || content.includes('\nB.')) {
+      return '<div class="text-left">' + 
+             content.replace(/\n/g, '<br>').replace(/^([A-D]\.)/gm, '<strong>$1</strong>') + 
+             '</div>';
+    }
+    return content.replace(/\n/g, '<br>');
+  }
+
+  function flipCard() {
+    const flashcard = document.querySelector('.flashcard');
+    if (flashcard) {
+      flashcard.classList.toggle('flipped');
+      isFlipped = !isFlipped;
+    }
+  }
+  
+  // Add click event to flashcard
+  document.addEventListener('DOMContentLoaded', function() {
+    const flashcard = document.querySelector('.flashcard');
+    if (flashcard) {
+      flashcard.addEventListener('click', flipCard);
+    }
+  });
+
+  function showNoteDialog() {
+    if (currentNote) {
+      document.getElementById('dialog-note-content').innerHTML = formatContent(currentNote);
+      document.getElementById('noteDialog').style.display = 'flex';
+      // Prevent body scroll
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeNoteDialog() {
+    document.getElementById('noteDialog').style.display = 'none';
+    // Restore body scroll
+    document.body.style.overflow = 'auto';
+  }
+
+  function nextCard() {
+    loadCard(currentIndex + 1);
+  }
+
+  function submitAnswer(isCorrect) {
+    const card = flashcards[currentIndex];
+
+    // Send answer to server
+    fetch('/study/answer', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        flashcard_id: card.id,
+        is_correct: isCorrect
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Move to next card
+      nextCard();
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      nextCard(); // Continue anyway
+    });
+  }
+
+  function toggleStar() {
+    const card = flashcards[currentIndex];
+
+    fetch(`/flashcards/${card.id}/toggle-star`, {
+      method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Toggle star state
+      card.is_starred = card.is_starred ? 0 : 1;
+      const starBtn = document.getElementById('star-btn');
+      if (card.is_starred) {
+        starBtn.innerHTML = '<i class="fas fa-star text-yellow-500"></i>';
+      } else {
+        starBtn.innerHTML = '<i class="far fa-star"></i>';
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  }
+
+  function showCompletion() {
+    const container = document.getElementById('flashcard-container').parentElement;
+    container.innerHTML = `
+      <div class="text-center py-12">
+        <i class="fas fa-trophy text-6xl text-yellow-500 mb-4"></i>
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">Great job!</h2>
+        <p class="text-gray-600 mb-6">You've completed this study session.</p>
+        <div class="space-x-4">
+          <a href="/dashboard" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+            <i class="fas fa-home"></i> Dashboard
+          </a>
+          <button onclick="location.reload()" class="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
+            <i class="fas fa-redo"></i> Study Again
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch(e.key) {
+      case ' ':
+        e.preventDefault();
+        flipCard();
+        break;
+      case 'ArrowLeft':
+        if (studyType === 'long_term' && isFlipped) {
+          submitAnswer(false);
+        }
+        break;
+      case 'ArrowRight':
+        if (studyType === 'long_term' && isFlipped) {
+          submitAnswer(true);
+        } else if (studyType !== 'long_term') {
+          nextCard();
+        }
+        break;
+    }
+  });
+
+  // Load first card
+  if (flashcards.length > 0) {
+    loadCard(0);
+  }
+</script>
+
+<style>
+  /* Flashcard 3D Flip Animation */
+  .flashcard {
+    perspective: 1000px;
+    width: 100%;
+    height: 350px;
+    cursor: pointer;
+  }
+  
+  .flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+  }
+  
+  .flashcard.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+  }
+  
+  .flashcard-front,
+  .flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+  }
+  
+  .flashcard-front {
+    background-color: #dbeafe;
+  }
+  
+  .flashcard-back {
+    background-color: #d1fae5;
+    transform: rotateY(180deg);
+  }
+  
+  .flashcard:hover .flashcard-front {
+    background-color: #bfdbfe;
+  }
+  
+  .flashcard:hover .flashcard-back {
+    background-color: #a7f3d0;
+  }
+</style>
