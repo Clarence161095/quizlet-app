@@ -1,17 +1,28 @@
-<div class="max-w-4xl mx-auto">
-  <div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-800 mb-2">
-      <i class="fas fa-brain text-blue-600"></i> <%= title %>
-    </h1>
-    <p class="text-gray-600">
-      <% if (studyType === 'long_term') { %>
-        Long-term learning with spaced repetition
-      <% } else if (studyType === 'random_all') { %>
-        Random practice - All cards
-      <% } else { %>
-        Random practice - Starred cards only
-      <% } %>
-    </p>
+<div class="max-w-4xl mx-auto" id="study-container">
+  <div class="mb-6" id="header-section">
+    <div class="flex justify-between items-start">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">
+          <i class="fas fa-brain text-blue-600"></i> <%= title %>
+        </h1>
+        <p class="text-gray-600">
+          <% if (studyType === 'long_term') { %>
+            Long-term learning with spaced repetition
+          <% } else if (studyType === 'random_all') { %>
+            Random practice - All cards
+          <% } else { %>
+            Random practice - Starred cards only
+          <% } %>
+        </p>
+      </div>
+      <button 
+        onclick="toggleFullscreen()" 
+        id="fullscreen-btn"
+        class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition"
+      >
+        <i class="fas fa-expand"></i> Fullscreen
+      </button>
+    </div>
   </div>
 
   <% if (!flashcards || flashcards.length === 0) { %>
@@ -31,13 +42,44 @@
       </a>
     </div>
   <% } else { %>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6" id="stats-section">
+      <button onclick="filterCards('all')" id="stat-all" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-blue-500">
+        <p class="text-gray-600 text-sm mb-1">Total</p>
+        <p class="text-2xl font-bold text-gray-800" id="stat-total"><%= flashcards.length %></p>
+      </button>
+      <button onclick="filterCards('mastered')" id="stat-mastered" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-green-500">
+        <p class="text-gray-600 text-sm mb-1">Mastered</p>
+        <p class="text-2xl font-bold text-green-600" id="stat-mastered-count">0</p>
+      </button>
+      <button onclick="filterCards('learning')" id="stat-learning" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-yellow-500">
+        <p class="text-gray-600 text-sm mb-1">Learning</p>
+        <p class="text-2xl font-bold text-yellow-600" id="stat-learning-count">0</p>
+      </button>
+      <button onclick="filterCards('new')" id="stat-new" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-blue-500">
+        <p class="text-gray-600 text-sm mb-1">New</p>
+        <p class="text-2xl font-bold text-blue-600" id="stat-new-count">0</p>
+      </button>
+      <button onclick="filterCards('starred')" id="stat-starred" class="stat-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-yellow-500">
+        <p class="text-gray-600 text-sm mb-1">Stars</p>
+        <p class="text-2xl font-bold text-yellow-500" id="stat-starred-count">0</p>
+      </button>
+    </div>
+
     <!-- Study Interface -->
-    <div class="bg-white rounded-lg shadow p-6 mb-4">
+    <div class="bg-white rounded-lg shadow p-6 mb-4" id="flashcard-section">
+      <!-- Filter Info -->
+      <div class="mb-4 text-center" id="filter-info-section">
+        <span id="filter-info" class="text-sm bg-blue-100 text-blue-800 px-4 py-2 rounded-full">
+          <i class="fas fa-filter"></i> Showing: All Cards
+        </span>
+      </div>
+
       <!-- Progress Bar -->
       <div class="mb-6">
         <div class="flex justify-between text-sm text-gray-600 mb-2">
           <span>Progress</span>
-          <span><span id="current-card">1</span> / <%= flashcards.length %></span>
+          <span><span id="current-card">1</span> / <span id="total-filtered"><%= flashcards.length %></span></span>
         </div>
         <div class="w-full bg-gray-200 rounded-full h-2">
           <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all" style="width: <%= (1/flashcards.length)*100 %>%"></div>
@@ -50,22 +92,22 @@
         <div class="flashcard">
           <div class="flashcard-inner">
             <div class="flashcard-front bg-blue-50 border-2 border-blue-200 rounded-lg">
-              <div class="text-center w-full p-8">
-                <p class="text-sm text-gray-500 mb-4">
+              <div class="text-center w-full p-8 h-full flex flex-col">
+                <p class="text-sm text-gray-500 mb-4 flex-shrink-0">
                   <i class="fas fa-sync-alt"></i> Click to flip
                 </p>
-                <div id="word-content" class="text-2xl font-semibold text-gray-800">
+                <div id="word-content" class="text-2xl font-semibold text-gray-800 overflow-y-auto flex-1">
                   Loading...
                 </div>
               </div>
             </div>
             
             <div class="flashcard-back bg-green-50 border-2 border-green-200 rounded-lg">
-              <div class="text-center w-full p-8">
-                <p class="text-sm text-gray-500 mb-4">
+              <div class="text-center w-full p-8 h-full flex flex-col">
+                <p class="text-sm text-gray-500 mb-4 flex-shrink-0">
                   <i class="fas fa-sync-alt"></i> Click to flip
                 </p>
-                <div id="definition-content" class="text-xl text-gray-800">
+                <div id="definition-content" class="text-xl text-gray-800 overflow-y-auto flex-1">
                   Loading...
                 </div>
               </div>
@@ -75,7 +117,7 @@
       </div>
 
       <!-- Note Button -->
-      <div class="mb-4 text-center">
+      <div class="mb-4 text-center" id="note-section">
         <button 
           onclick="showNoteDialog()" 
           id="note-btn"
@@ -116,7 +158,7 @@
       <% } %>
 
       <!-- Star Toggle -->
-      <div class="mt-4 text-center">
+      <div class="mt-4 text-center" id="star-section">
         <button 
           onclick="toggleStar()" 
           id="star-btn"
@@ -160,17 +202,267 @@
 <script>
   const flashcards = <%- JSON.stringify(flashcards || []) %>;
   const studyType = '<%= studyType %>';
+  const entityType = '<%= entityType %>';
+  const entityId = '<%= entityId %>';
   let currentIndex = 0;
   let isFlipped = false;
   let currentNote = null;
+  let currentFilter = 'all';
+  let filteredFlashcards = [...flashcards];
+  let isFullscreen = false;
+  
+  // LocalStorage key for this study session
+  const storageKey = `study_filter_${entityType}_${entityId}`;
+
+  // Initialize stats
+  function updateStats() {
+    const stats = {
+      total: flashcards.length,
+      mastered: 0,
+      learning: 0,
+      new: 0,
+      starred: 0
+    };
+
+    flashcards.forEach(card => {
+      if (card.is_starred) stats.starred++;
+      if (card.is_mastered) {
+        stats.mastered++;
+      } else if (card.consecutive_correct > 0) {
+        stats.learning++;
+      } else {
+        stats.new++;
+      }
+    });
+
+    document.getElementById('stat-total').textContent = stats.total;
+    document.getElementById('stat-mastered-count').textContent = stats.mastered;
+    document.getElementById('stat-learning-count').textContent = stats.learning;
+    document.getElementById('stat-new-count').textContent = stats.new;
+    document.getElementById('stat-starred-count').textContent = stats.starred;
+  }
+
+  // Filter cards
+  function filterCards(filterType) {
+    currentFilter = filterType;
+    
+    // Save filter to localStorage
+    localStorage.setItem(storageKey, filterType);
+    
+    // Update active state on stats cards
+    document.querySelectorAll('.stat-card').forEach(card => {
+      card.classList.remove('border-blue-500', 'border-green-500', 'border-yellow-500');
+      card.classList.add('border-transparent');
+    });
+
+    // Filter flashcards
+    switch(filterType) {
+      case 'all':
+        filteredFlashcards = [...flashcards];
+        document.getElementById('stat-all').classList.remove('border-transparent');
+        document.getElementById('stat-all').classList.add('border-blue-500');
+        updateFilterInfo('all', 'All Cards', 'blue');
+        break;
+      case 'mastered':
+        filteredFlashcards = flashcards.filter(card => card.is_mastered);
+        document.getElementById('stat-mastered').classList.remove('border-transparent');
+        document.getElementById('stat-mastered').classList.add('border-green-500');
+        updateFilterInfo('mastered', 'Mastered Cards', 'green');
+        break;
+      case 'learning':
+        filteredFlashcards = flashcards.filter(card => !card.is_mastered && (card.consecutive_correct > 0));
+        document.getElementById('stat-learning').classList.remove('border-transparent');
+        document.getElementById('stat-learning').classList.add('border-yellow-500');
+        updateFilterInfo('learning', 'Learning Cards', 'yellow');
+        break;
+      case 'new':
+        filteredFlashcards = flashcards.filter(card => !card.is_mastered && (!card.consecutive_correct || card.consecutive_correct === 0));
+        document.getElementById('stat-new').classList.remove('border-transparent');
+        document.getElementById('stat-new').classList.add('border-blue-500');
+        updateFilterInfo('new', 'New Cards', 'blue');
+        break;
+      case 'starred':
+        filteredFlashcards = flashcards.filter(card => card.is_starred);
+        document.getElementById('stat-starred').classList.remove('border-transparent');
+        document.getElementById('stat-starred').classList.add('border-yellow-500');
+        updateFilterInfo('starred', 'Starred Cards', 'yellow');
+        break;
+    }
+
+    // Update total filtered count
+    const totalFilteredEl = document.getElementById('total-filtered');
+    if (totalFilteredEl) {
+      totalFilteredEl.textContent = filteredFlashcards.length;
+    }
+
+    // Check if there are cards to show
+    if (filteredFlashcards.length === 0) {
+      // Auto-switch to a filter with data
+      const availableFilters = [
+        { type: 'all', count: flashcards.length },
+        { type: 'mastered', count: flashcards.filter(c => c.is_mastered).length },
+        { type: 'learning', count: flashcards.filter(c => !c.is_mastered && c.consecutive_correct > 0).length },
+        { type: 'new', count: flashcards.filter(c => !c.is_mastered && (!c.consecutive_correct || c.consecutive_correct === 0)).length },
+        { type: 'starred', count: flashcards.filter(c => c.is_starred).length }
+      ];
+      
+      // Find first filter with data, excluding current
+      const nextFilter = availableFilters.find(f => f.count > 0 && f.type !== filterType);
+      
+      if (nextFilter) {
+        console.log(`No cards in ${filterType}, switching to ${nextFilter.type}`);
+        // Recursively call with available filter
+        setTimeout(() => filterCards(nextFilter.type), 100);
+        return; // Important: prevent continuing execution
+      } else {
+        // Truly no cards available
+        showNoCardsMessage(filterType);
+        return;
+      }
+    }
+    
+    // Only execute if we have cards
+    currentIndex = 0;
+    loadCard(0);
+  }
+  
+  // Helper function to update filter info safely
+  function updateFilterInfo(filterType, label, color) {
+    const filterInfoEl = document.getElementById('filter-info');
+    if (filterInfoEl) {
+      filterInfoEl.innerHTML = `<i class="fas fa-filter"></i> Showing: ${label}`;
+      filterInfoEl.className = `text-sm bg-${color}-100 text-${color}-800 px-4 py-2 rounded-full`;
+    }
+  }
+  
+  // Fullscreen toggle
+  function toggleFullscreen() {
+    isFullscreen = !isFullscreen;
+    const container = document.getElementById('study-container');
+    const btn = document.getElementById('fullscreen-btn');
+    const header = document.getElementById('header-section');
+    const stats = document.getElementById('stats-section');
+    const filterInfo = document.getElementById('filter-info-section');
+    const flashcardSection = document.getElementById('flashcard-section');
+    const cardInfo = document.querySelector('.bg-gray-50.p-4');
+    const noteSection = document.getElementById('note-section');
+    const starSection = document.getElementById('star-section');
+    
+    if (isFullscreen) {
+      // Enter fullscreen mode
+      container.classList.remove('max-w-4xl', 'mx-auto');
+      container.classList.add('fixed', 'inset-0', 'bg-gray-100', 'z-50', 'overflow-y-auto', 'p-2', 'md:p-4', 'fullscreen-mode');
+      
+      // Hide unnecessary elements for focus - KEEP note section visible
+      if (header) header.style.display = 'none';
+      if (stats) stats.style.display = 'none';
+      if (filterInfo) filterInfo.style.display = 'none';
+      if (cardInfo) cardInfo.style.display = 'none';
+      // Note section stays visible - removed from hide list
+      if (starSection) starSection.style.display = 'none';
+      
+      // Optimize flashcard section
+      flashcardSection.classList.remove('p-6', 'mb-4', 'shadow');
+      flashcardSection.classList.add('p-1', 'mb-0');
+      
+      // Add focus mode hint
+      const hint = document.createElement('div');
+      hint.id = 'fullscreen-hint';
+      hint.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-full text-sm z-40';
+      hint.innerHTML = '<i class="fas fa-eye"></i> Focus Mode - Press F or ESC to exit';
+      container.appendChild(hint);
+      
+      // Auto hide hint after 3 seconds
+      setTimeout(() => {
+        const hintEl = document.getElementById('fullscreen-hint');
+        if (hintEl) {
+          hintEl.style.transition = 'opacity 0.5s';
+          hintEl.style.opacity = '0';
+          setTimeout(() => hintEl.remove(), 500);
+        }
+      }, 3000);
+      
+      btn.innerHTML = '<i class="fas fa-compress"></i>';
+      btn.classList.remove('bg-gray-200', 'hover:bg-gray-300', 'text-gray-700');
+      btn.classList.add('bg-red-500', 'hover:bg-red-600', 'text-white', 'fixed', 'top-2', 'right-2', 'z-50', 'px-3', 'py-2', 'shadow-lg');
+      
+      // Try native fullscreen API
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.log('Fullscreen request failed:', err);
+        });
+      }
+    } else {
+      // Exit fullscreen mode
+      container.classList.add('max-w-4xl', 'mx-auto');
+      container.classList.remove('fixed', 'inset-0', 'bg-gray-100', 'z-50', 'overflow-y-auto', 'p-2', 'md:p-4', 'fullscreen-mode');
+      
+      // Remove hint if exists
+      const hint = document.getElementById('fullscreen-hint');
+      if (hint) hint.remove();
+      
+      // Show all elements
+      if (header) header.style.display = 'block';
+      if (stats) stats.style.display = 'grid';
+      if (filterInfo) filterInfo.style.display = 'block';
+      if (cardInfo) cardInfo.style.display = 'flex';
+      if (noteSection) noteSection.style.display = 'block';
+      if (starSection) starSection.style.display = 'block';
+      
+      // Restore flashcard section
+      flashcardSection.classList.add('p-6', 'mb-4', 'shadow');
+      flashcardSection.classList.remove('p-1', 'mb-0');
+      
+      btn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
+      btn.classList.add('bg-gray-200', 'hover:bg-gray-300', 'text-gray-700');
+      btn.classList.remove('bg-red-500', 'hover:bg-red-600', 'text-white', 'fixed', 'top-2', 'right-2', 'z-50', 'px-3', 'py-2', 'shadow-lg');
+      
+      // Exit native fullscreen
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(err => {
+          console.log('Exit fullscreen failed:', err);
+        });
+      }
+    }
+  }
+  
+  // Listen for fullscreen changes
+  document.addEventListener('fullscreenchange', function() {
+    if (!document.fullscreenElement && isFullscreen) {
+      // User pressed ESC or exited fullscreen via browser
+      toggleFullscreen();
+    }
+  });
+
+  function showNoCardsMessage(filterType) {
+    const filterNames = {
+      'all': 'All',
+      'mastered': 'Mastered',
+      'learning': 'Learning',
+      'new': 'New',
+      'starred': 'Starred'
+    };
+    
+    const container = document.getElementById('flashcard-container').parentElement;
+    container.innerHTML = `
+      <div class="text-center py-12">
+        <i class="fas fa-inbox text-6xl text-gray-400 mb-4"></i>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">No ${filterNames[filterType]} Cards</h2>
+        <p class="text-gray-600 mb-6">Try selecting a different filter.</p>
+        <button onclick="filterCards('all')" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+          <i class="fas fa-filter"></i> Show All Cards
+        </button>
+      </div>
+    `;
+  }
 
   function loadCard(index) {
-    if (index >= flashcards.length) {
+    if (index >= filteredFlashcards.length) {
       showCompletion();
       return;
     }
 
-    const card = flashcards[index];
+    const card = filteredFlashcards[index];
     currentIndex = index;
     
     // Important: Reset flip state BEFORE updating content
@@ -186,7 +478,7 @@
 
       // Update progress
       document.getElementById('current-card').textContent = index + 1;
-      const progress = ((index + 1) / flashcards.length) * 100;
+      const progress = ((index + 1) / filteredFlashcards.length) * 100;
       document.getElementById('progress-bar').style.width = progress + '%';
 
       // Update star button
@@ -260,7 +552,7 @@
   }
 
   function submitAnswer(isCorrect) {
-    const card = flashcards[currentIndex];
+    const card = filteredFlashcards[currentIndex];
 
     // Send answer to server
     fetch('/study/answer', {
@@ -275,6 +567,24 @@
     })
     .then(response => response.json())
     .then(data => {
+      // Update local card data
+      const originalCard = flashcards.find(c => c.id === card.id);
+      if (originalCard) {
+        if (isCorrect) {
+          originalCard.consecutive_correct = (originalCard.consecutive_correct || 0) + 1;
+          // Check if mastered (e.g., 3 consecutive correct)
+          if (originalCard.consecutive_correct >= 3) {
+            originalCard.is_mastered = true;
+          }
+        } else {
+          originalCard.consecutive_correct = 0;
+          originalCard.is_mastered = false;
+        }
+      }
+      
+      // Update stats
+      updateStats();
+      
       // Move to next card
       nextCard();
     })
@@ -285,20 +595,33 @@
   }
 
   function toggleStar() {
-    const card = flashcards[currentIndex];
+    const card = filteredFlashcards[currentIndex];
 
     fetch(`/flashcards/${card.id}/toggle-star`, {
       method: 'POST'
     })
     .then(response => response.json())
     .then(data => {
-      // Toggle star state
+      // Toggle star state in both arrays
+      const originalCard = flashcards.find(c => c.id === card.id);
+      if (originalCard) {
+        originalCard.is_starred = originalCard.is_starred ? 0 : 1;
+      }
       card.is_starred = card.is_starred ? 0 : 1;
+      
       const starBtn = document.getElementById('star-btn');
       if (card.is_starred) {
         starBtn.innerHTML = '<i class="fas fa-star text-yellow-500"></i>';
       } else {
         starBtn.innerHTML = '<i class="far fa-star"></i>';
+      }
+      
+      // Update stats
+      updateStats();
+      
+      // If filtering by starred, re-apply filter
+      if (currentFilter === 'starred') {
+        filterCards('starred');
       }
     })
     .catch(error => console.error('Error:', error));
@@ -349,8 +672,25 @@
 
   // Load first card
   if (flashcards.length > 0) {
-    loadCard(0);
+    updateStats();
+    
+    // Restore filter from localStorage
+    const savedFilter = localStorage.getItem(storageKey);
+    if (savedFilter && ['all', 'mastered', 'learning', 'new', 'starred'].includes(savedFilter)) {
+      filterCards(savedFilter);
+    } else {
+      loadCard(0);
+    }
   }
+  
+  // Keyboard shortcut for fullscreen (F key)
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    
+    if (e.key === 'f' || e.key === 'F') {
+      toggleFullscreen();
+    }
+  });
 </script>
 
 <style>
@@ -404,4 +744,126 @@
   .flashcard:hover .flashcard-back {
     background-color: #a7f3d0;
   }
+  
+  /* Fullscreen optimizations */
+  #study-container.fullscreen-mode {
+    padding: 0 !important;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  #study-container.fullscreen-mode #flashcard-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: transparent;
+  }
+  
+  #study-container.fullscreen-mode .flashcard {
+    height: 98vh;
+    max-height: 98vh;
+  }
+  
+  #study-container.fullscreen-mode .flashcard-inner {
+    height: 100%;
+  }
+  
+  #study-container.fullscreen-mode .flashcard-front,
+  #study-container.fullscreen-mode .flashcard-back {
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  #study-container.fullscreen-mode #word-content,
+  #study-container.fullscreen-mode #definition-content {
+    font-size: clamp(1.5rem, 5vw, 3rem);
+    padding: 1rem;
+    max-width: 100%;
+    line-height: 1.4;
+    overflow-y: auto;
+    max-height: calc(98vh - 200px);
+  }
+  
+  /* Custom scrollbar for content */
+  #study-container.fullscreen-mode #word-content::-webkit-scrollbar,
+  #study-container.fullscreen-mode #definition-content::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  #study-container.fullscreen-mode #word-content::-webkit-scrollbar-track,
+  #study-container.fullscreen-mode #definition-content::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  #study-container.fullscreen-mode #word-content::-webkit-scrollbar-thumb,
+  #study-container.fullscreen-mode #definition-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+  }
+  
+  #study-container.fullscreen-mode #word-content::-webkit-scrollbar-thumb:hover,
+  #study-container.fullscreen-mode #definition-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Mobile fullscreen optimizations */
+  @media (max-width: 768px) {
+    #study-container.fullscreen-mode .flashcard {
+      height: 98vh;
+    }
+    
+    #study-container.fullscreen-mode #word-content,
+    #study-container.fullscreen-mode #definition-content {
+      font-size: clamp(1.25rem, 6vw, 2.5rem);
+      padding: 0.75rem;
+      max-height: calc(98vh - 180px);
+    }
+  }
+  
+  /* Answer buttons in fullscreen - fixed at bottom */
+  #study-container.fullscreen-mode .flex.space-x-4 {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 0.5rem;
+    background: white;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    z-index: 30;
+  }
+  
+  #study-container.fullscreen-mode .flex.space-x-4 button {
+    font-size: 1.25rem;
+    padding: 1rem;
+  }
+  
+  /* Note section in fullscreen - stays visible but compact */
+  #study-container.fullscreen-mode #note-section {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    z-index: 40;
+    max-width: 600px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  
+  #study-container.fullscreen-mode #note-section textarea {
+    max-height: 150px;
+    font-size: 0.9rem;
+  }
+  
+  @media (max-width: 768px) {
+    #study-container.fullscreen-mode .flex.space-x-4 button {
+      font-size: 1rem;
+      padding: 0.75rem;
+    }
+  }
+</style>
 </style>
