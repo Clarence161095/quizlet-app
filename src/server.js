@@ -72,6 +72,20 @@ app.use((req, res, next) => {
   next();
 });
 
+// Import middleware for first login checks
+const { checkPasswordChange, checkFirstLogin } = require('./middleware/auth');
+
+// Apply first login checks globally for authenticated users
+app.use((req, res, next) => {
+  if (req.isAuthenticated()) {
+    checkPasswordChange(req, res, () => {
+      checkFirstLogin(req, res, next);
+    });
+  } else {
+    next();
+  }
+});
+
 // Routes
 app.get('/', (req, res) => {
   if (req.isAuthenticated()) {

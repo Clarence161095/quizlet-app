@@ -32,9 +32,17 @@ router.post('/users/create', ensureAuthenticated, checkMFA, ensureAdmin, async (
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  User.create(username, hashedPassword, email, is_admin ? 1 : 0);
+  
+  // Create user with must_change_password and first_login flags
+  const userId = User.create(username, hashedPassword, email, is_admin ? 1 : 0);
+  
+  // Set flags for first login
+  User.update(userId, { 
+    must_change_password: 1,
+    first_login: 1
+  });
 
-  req.flash('success', `User ${username} created successfully!`);
+  req.flash('success', `User ${username} created successfully! They must change password on first login.`);
   res.redirect('/admin');
 });
 

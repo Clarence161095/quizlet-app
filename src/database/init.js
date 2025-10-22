@@ -19,6 +19,8 @@ const createTables = () => {
       email TEXT,
       is_admin INTEGER DEFAULT 0,
       is_active INTEGER DEFAULT 1,
+      must_change_password INTEGER DEFAULT 0,
+      first_login INTEGER DEFAULT 1,
       mfa_secret TEXT,
       mfa_enabled INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -61,6 +63,8 @@ const createTables = () => {
       set_id INTEGER NOT NULL,
       word TEXT NOT NULL,
       definition TEXT NOT NULL,
+      term_image TEXT,
+      definition_image TEXT,
       is_starred INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -130,6 +134,42 @@ const createTables = () => {
       answered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (session_id) REFERENCES study_sessions(id) ON DELETE CASCADE,
       FOREIGN KEY (flashcard_id) REFERENCES flashcards(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Set shares table - for sharing sets between users
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS set_shares (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      set_id INTEGER NOT NULL,
+      shared_by_user_id INTEGER NOT NULL,
+      shared_with_user_id INTEGER NOT NULL,
+      is_accepted INTEGER DEFAULT 0,
+      share_token TEXT UNIQUE NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      accepted_at DATETIME,
+      FOREIGN KEY (set_id) REFERENCES sets(id) ON DELETE CASCADE,
+      FOREIGN KEY (shared_by_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (shared_with_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE(set_id, shared_with_user_id)
+    )
+  `);
+
+  // Folder shares table - for sharing folders between users
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS folder_shares (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      folder_id INTEGER NOT NULL,
+      shared_by_user_id INTEGER NOT NULL,
+      shared_with_user_id INTEGER NOT NULL,
+      is_accepted INTEGER DEFAULT 0,
+      share_token TEXT UNIQUE NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      accepted_at DATETIME,
+      FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE,
+      FOREIGN KEY (shared_by_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (shared_with_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE(folder_id, shared_with_user_id)
     )
   `);
 

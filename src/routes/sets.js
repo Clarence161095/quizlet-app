@@ -111,6 +111,51 @@ router.get('/:id/import', ensureAuthenticated, checkMFA, (req, res) => {
   });
 });
 
+// Helper function: Parse multi-choice question format
+function parseMultiChoice(text) {
+  // Multi-choice format:
+  // Question text
+  // A. Option A
+  // B. Option B
+  // XXXC. Correct Option  <- marked with XXX
+  // D. Option D
+  
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  if (lines.length === 0) return null;
+  
+  const question = lines[0];
+  const options = [];
+  let correctAnswer = null;
+  
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // Check if line starts with XXX (correct answer marker)
+    if (line.startsWith('XXX')) {
+      const cleanLine = line.substring(3).trim();
+      const match = cleanLine.match(/^([A-Z])\.\s*(.+)/);
+      if (match) {
+        correctAnswer = match[1];
+        options.push(`${match[1]}. ${match[2]}`);
+      }
+    } else {
+      const match = line.match(/^([A-Z])\.\s*(.+)/);
+      if (match) {
+        options.push(line);
+      }
+    }
+  }
+  
+  // Validate multi-choice structure
+  if (options.length >= 2 && correctAnswer) {
+    const term = question;
+    const definition = options.join('\n') + '\n\n✓ Correct: ' + correctAnswer;
+    return { term, definition };
+  }
+  
+  return null;
+}
+
 // Import flashcards POST
 router.post('/:id/import', ensureAuthenticated, checkMFA, (req, res) => {
   const set = Set.findById(req.params.id);
@@ -138,7 +183,20 @@ router.post('/:id/import', ensureAuthenticated, checkMFA, (req, res) => {
   const flashcardBlocks = content.split(flashcardSep).filter(block => block.trim());
   
   const cards = flashcardBlocks.map(block => {
-    const parts = block.trim().split(termDefSep);
+    block = block.trim();
+    
+    // Try multi-choice parser first
+    const multiChoice = parseMultiChoice(block);
+    if (multiChoice) {
+      return {
+        word: multiChoice.term,
+        definition: multiChoice.definition,
+        note: null
+      };
+    }
+    
+    // Regular parsing with separators
+    const parts = block.split(termDefSep);
     
     if (parts.length >= 2) {
       const term = parts[0].trim();
@@ -177,6 +235,93 @@ router.post('/:id/import', ensureAuthenticated, checkMFA, (req, res) => {
   });
 
   req.flash('success', `Successfully imported ${cards.length} flashcard(s)`);
+  res.redirect(`/sets/${req.params.id}`);
+});
+
+// Helper function: Parse markdown format questions
+function parseMarkdownQuestions(text) {
+  // Parse markdown format:
+  // ### Question
+  // - [ ] Option A
+  // - [x] Correct Option B
+  // Optional note after options
+  
+  const flashcards = [];
+  
+  // Split by ### to get questions
+  const questionBlocks = text.split(/###\s+/).filter(block => block.trim());
+  
+  questionBlocks.forEach(block => {
+    const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+    if (lines.length === 0) return;
+    
+    // First line is the question
+    const question = lines[0].replace(/\?$/, '').trim() + '?';
+    
+    const options = [];
+    const correctOptions = [];
+    let note = '';
+    
+    // Parse options
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // Check for checkbox format
+      const checkedMatch = line.match(/^-\s*\[x\]\s*(.+)/i);
+      const uncheckedMatch = line.match(/^-\s*\[\s*\]\s*(.+)/i);
+      
+      if (checkedMatch) {
+        const optionText = checkedMatch[1].trim();
+        const letter = String.fromCharCode(65 + options.length);
+        options.push(`${letter}. ${optionText}`);
+        correctOptions.push(letter);
+      } else if (uncheckedMatch) {
+        const optionText = uncheckedMatch[1].trim();
+        const letter = String.fromCharCode(65 + options.length);
+        options.push(`${letter}. ${optionText}`);
+      } else if (line.startsWith('###')) {
+        break;
+      } else if (options.length > 0) {
+        // Any text after options = note
+        note += (note ? ' ' : '') + line;
+      }
+    }
+    
+    if (options.length >= 2 && correctOptions.length > 0) {
+      // Build TERM: Question + Options + Note (if exists)
+      let term = question + '\n' + options.join('\n');
+      if (note) {
+        term += 'YYY' + note;
+      }
+      
+      // Build DEFINITION: Correct: A or Correct: A, C
+      const definition = 'Correct: ' + correctOptions.join(', ');
+      
+      flashcards.push({ term, definition });
+    }
+  });
+  
+  return flashcards;
+}
+
+// Import flashcards from Markdown format
+router.post('/:id/import-markdown', ensureAuthenticated, checkMFA, (req, res) => {
+  const set = Set.findById(req.params.id);
+  
+  if (!set || set.user_id !== req.user.id) {
+    return res.status(404).send('Set not found');
+  }
+
+  const { content } = req.body;
+  
+  const flashcards = parseMarkdownQuestions(content);
+  
+  // Import flashcards
+  flashcards.forEach(card => {
+    Flashcard.create(req.params.id, card.term, card.definition);
+  });
+
+  req.flash('success', `Successfully imported ${flashcards.length} flashcard(s) from Markdown`);
   res.redirect(`/sets/${req.params.id}`);
 });
 

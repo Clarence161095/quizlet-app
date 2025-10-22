@@ -1,0 +1,13 @@
+A Developer is writing a serverless application that requires that an AWS Lambda function be invoked every 10 minutes. What is an automated and serverless way to trigger the function?
+A. Deploy an Amazon EC2 instance based on Linux, and edit its `/etc/crontab` file
+B. Configure an environment variable named PERIOD for the Lambda function
+XXXC. Create an Amazon CloudWatch Events rule that triggers on a regular schedule
+D. Create an Amazon SNS topic that has a subscription to the Lambda functionYYYServerless schedulingZZZA company is building an application to track athlete performance using an Amazon DynamoDB table. Each item in the table is identified by a partition key (user_id) and a sort key (sport_name). What process will allow the Developer to extract results MOST efficiently?
+A. Use a DynamoDB query operation with key attributes
+XXXB. Create a global secondary index with partition key of sport_name and sort key of score
+C. Use a DynamoDB scan operation to retrieve scores
+D. Create a local secondary index with primary keyYYYDynamoDB GSI conceptZZZA Developer is creating a mobile application that will not require users to log in. What is the MOST efficient method to grant users access to AWS resources?
+A. Use an identity provider to securely authenticate
+B. Create an AWS Lambda function to create an IAM user
+C. Create credentials using AWS KMS
+XXXD. Use Amazon Cognito to associate unauthenticated users with an IAM roleYYYCognito unauthenticated access

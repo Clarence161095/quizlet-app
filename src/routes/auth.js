@@ -50,8 +50,9 @@ router.get('/mfa-setup', (req, res) => {
     return res.redirect('/auth/login');
   }
 
+  const isForced = req.query.force === '1';
   const secret = speakeasy.generateSecret({
-    name: `Quizlet App (${req.user.username})`
+    name: `QuizletApp-${req.user.username}`
   });
 
   req.session.tempMfaSecret = secret.base32;
@@ -65,7 +66,8 @@ router.get('/mfa-setup', (req, res) => {
     res.render('auth/mfa-setup', {
       title: 'MFA Setup',
       qrCode: dataUrl,
-      secret: secret.base32
+      secret: secret.base32,
+      isForced: isForced
     });
   });
 });
@@ -88,7 +90,8 @@ router.post('/mfa-setup', async (req, res) => {
   if (verified) {
     User.update(req.user.id, {
       mfa_secret: secret,
-      mfa_enabled: 1
+      mfa_enabled: 1,
+      first_login: 0
     });
 
     req.session.mfaVerified = true;
@@ -143,10 +146,13 @@ router.get('/change-password', (req, res) => {
     return res.redirect('/auth/login');
   }
 
+  const isForced = req.query.force === '1';
+
   res.render('auth/change-password', {
     title: 'Change Password',
     message: req.flash('error'),
-    success: req.flash('success')
+    success: req.flash('success'),
+    isForced: isForced
   });
 });
 
@@ -157,28 +163,43 @@ router.post('/change-password', async (req, res) => {
   }
 
   const { currentPassword, newPassword, confirmPassword } = req.body;
+  const isForced = req.user.must_change_password;
 
-  // Verify current password
-  const isMatch = await bcrypt.compare(currentPassword, req.user.password);
-  if (!isMatch) {
-    req.flash('error', 'Current password is incorrect');
-    return res.redirect('/auth/change-password');
+  // Skip current password check if forced change (first login)
+  if (!isForced) {
+    const isMatch = await bcrypt.compare(currentPassword, req.user.password);
+    if (!isMatch) {
+      req.flash('error', 'Current password is incorrect');
+      return res.redirect('/auth/change-password');
+    }
   }
 
   if (newPassword !== confirmPassword) {
     req.flash('error', 'New passwords do not match');
-    return res.redirect('/auth/change-password');
+    return res.redirect('/auth/change-password' + (isForced ? '?force=1' : ''));
   }
 
   if (newPassword.length < 6) {
     req.flash('error', 'Password must be at least 6 characters long');
-    return res.redirect('/auth/change-password');
+    return res.redirect('/auth/change-password' + (isForced ? '?force=1' : ''));
   }
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
-  User.update(req.user.id, { password: hashedPassword });
+  User.update(req.user.id, { 
+    password: hashedPassword,
+    must_change_password: 0
+  });
+
+  // Update session user object
+  req.user.must_change_password = 0;
 
   req.flash('success', 'Password changed successfully!');
+  
+  // Redirect to MFA setup if first login
+  if (req.user.first_login) {
+    return res.redirect('/auth/mfa-setup?force=1');
+  }
+  
   res.redirect('/dashboard');
 });
 

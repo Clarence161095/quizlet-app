@@ -36,6 +36,14 @@ class User {
       fields.push('is_active = ?');
       values.push(data.is_active);
     }
+    if (data.must_change_password !== undefined) {
+      fields.push('must_change_password = ?');
+      values.push(data.must_change_password);
+    }
+    if (data.first_login !== undefined) {
+      fields.push('first_login = ?');
+      values.push(data.first_login);
+    }
     if (data.mfa_secret !== undefined) {
       fields.push('mfa_secret = ?');
       values.push(data.mfa_secret);

@@ -14,6 +14,12 @@
         <i class="fas fa-shield-alt"></i> Setup Multi-Factor Authentication
       </h1>
       <p class="text-gray-600">Scan the QR code with your authenticator app</p>
+      
+      <% if (locals.isForced) { %>
+        <div class="mt-4 bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded text-sm">
+          <i class="fas fa-info-circle"></i> You must setup MFA before continuing.
+        </div>
+      <% } %>
     </div>
 
     <div class="mb-6">
