@@ -37,7 +37,7 @@
   <% } else { %>
     <!-- Stats Cards - Mobile First Responsive -->
     <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 hide-in-fullscreen" id="stats-section">
-      <button onclick="filterCards('all')" id="stat-all" class="stat-card bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-blue-500 text-center">
+      <button onclick="filterCards('all')" id="stat-all" class="stat-card bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-blue-500 text-center col-span-2 sm:col-span-1">
         <p class="text-gray-600 text-xs sm:text-sm mb-0.5 sm:mb-1">Total</p>
         <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800" id="stat-total"><%= flashcards.length %></p>
       </button>
@@ -53,10 +53,14 @@
         <p class="text-gray-600 text-xs sm:text-sm mb-0.5 sm:mb-1">New</p>
         <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600" id="stat-new-count">0</p>
       </button>
-      <button onclick="filterCards('starred')" id="stat-starred" class="stat-card bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-yellow-500 text-center col-span-3 sm:col-span-1">
+      <button onclick="filterCards('starred')" id="stat-starred" class="stat-card bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-yellow-500 text-center">
         <p class="text-gray-600 text-xs sm:text-sm mb-0.5 sm:mb-1">Stars</p>
         <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-500" id="stat-starred-count">0</p>
       </button>
+      <!-- <button onclick="filterCards('starred')" id="stat-starred" class="stat-card bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-yellow-500 text-center col-span-3 sm:col-span-1">
+        <p class="text-gray-600 text-xs sm:text-sm mb-0.5 sm:mb-1">Stars</p>
+        <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-500" id="stat-starred-count">0</p>
+      </button> -->
     </div>
 
     <!-- Study Interface -->
