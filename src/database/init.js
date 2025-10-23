@@ -72,11 +72,19 @@ const createTables = () => {
       term_image TEXT,
       definition_image TEXT,
       is_starred INTEGER DEFAULT 0,
+      order_index INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (set_id) REFERENCES sets(id) ON DELETE CASCADE
     )
   `);
+  
+  // Add order_index column if it doesn't exist (migration)
+  try {
+    db.exec(`ALTER TABLE flashcards ADD COLUMN order_index INTEGER DEFAULT 0`);
+  } catch (e) {
+    // Column already exists, ignore error
+  }
 
   // User notes for flashcards (personal notes)
   db.exec(`

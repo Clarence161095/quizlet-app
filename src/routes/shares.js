@@ -122,10 +122,10 @@ router.get('/sets/:token/view', ensureAuthenticated, checkMFA, (req, res) => {
     );
     const newSetId = result.lastInsertRowid;
     
-    // Clone all flashcards
+    // Clone all flashcards with preserved order
     const flashcards = Flashcard.findBySetId(share.set_id);
-    flashcards.forEach(card => {
-      Flashcard.create(newSetId, card.word, card.definition, 0); // Don't copy starred status
+    flashcards.forEach((card, index) => {
+      Flashcard.create(newSetId, card.word, card.definition, 0, index); // Don't copy starred status, preserve order
     });
     
     // Mark as accepted
@@ -277,10 +277,10 @@ router.get('/folders/:token/view', ensureAuthenticated, checkMFA, (req, res) => 
       );
       const newSetId = resultSet.lastInsertRowid;
       
-      // Clone all flashcards in set
+      // Clone all flashcards in set with preserved order
       const flashcards = Flashcard.findBySetId(set.id);
-      flashcards.forEach(card => {
-        Flashcard.create(newSetId, card.word, card.definition, 0);
+      flashcards.forEach((card, index) => {
+        Flashcard.create(newSetId, card.word, card.definition, 0, index);
       });
     });
     
@@ -408,10 +408,10 @@ router.post('/sets/:id/update-from-source', ensureAuthenticated, checkMFA, (req,
   // Delete all current flashcards (but keep learning progress)
   db.prepare('DELETE FROM flashcards WHERE set_id = ?').run(req.params.id);
   
-  // Clone flashcards from source
+  // Clone flashcards from source with preserved order
   const sourceFlashcards = Flashcard.findBySetId(set.source_set_id);
-  sourceFlashcards.forEach(card => {
-    Flashcard.create(req.params.id, card.word, card.definition, 0);
+  sourceFlashcards.forEach((card, index) => {
+    Flashcard.create(req.params.id, card.word, card.definition, 0, index);
   });
   
   // Update set metadata
@@ -473,10 +473,10 @@ router.post('/folders/:id/update-from-source', ensureAuthenticated, checkMFA, (r
     );
     const newSetId = resultSet.lastInsertRowid;
     
-    // Clone flashcards
+    // Clone flashcards with preserved order
     const flashcards = Flashcard.findBySetId(sourceSet.id);
-    flashcards.forEach(card => {
-      Flashcard.create(newSetId, card.word, card.definition, 0);
+    flashcards.forEach((card, index) => {
+      Flashcard.create(newSetId, card.word, card.definition, 0, index);
     });
   });
   

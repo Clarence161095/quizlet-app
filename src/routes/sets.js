@@ -229,9 +229,9 @@ router.post('/:id/import', ensureAuthenticated, checkMFA, (req, res) => {
     return null;
   }).filter(card => card && card.word && card.definition);
 
-  // Import flashcards with notes
-  cards.forEach(card => {
-    const flashcardId = Flashcard.create(req.params.id, card.word, card.definition);
+  // Import flashcards with notes - preserve order using index
+  cards.forEach((card, index) => {
+    const flashcardId = Flashcard.create(req.params.id, card.word, card.definition, 0, index);
     
     // If there's a note, create user note
     if (card.note && flashcardId) {
@@ -322,9 +322,15 @@ router.post('/:id/import-markdown', ensureAuthenticated, checkMFA, (req, res) =>
   
   const flashcards = parseMarkdownQuestions(content);
   
-  // Import flashcards
-  flashcards.forEach(card => {
-    Flashcard.create(req.params.id, card.term, card.definition);
+  // Get max order_index to append at end
+  const existingCards = Flashcard.findBySetId(req.params.id);
+  const maxOrder = existingCards.length > 0 
+    ? Math.max(...existingCards.map(c => c.order_index || 0)) 
+    : -1;
+  
+  // Import flashcards with preserved order
+  flashcards.forEach((card, index) => {
+    Flashcard.create(req.params.id, card.term, card.definition, 0, maxOrder + 1 + index);
   });
 
   req.flash('success', `Successfully imported ${flashcards.length} flashcard(s) from Markdown`);

@@ -30,7 +30,14 @@ router.post('/create/:setId', ensureAuthenticated, checkMFA, (req, res) => {
   }
 
   const { word, definition } = req.body;
-  Flashcard.create(req.params.setId, word, definition);
+  
+  // Get max order_index and add 1 to append at end
+  const existingCards = Flashcard.findBySetId(req.params.setId);
+  const maxOrder = existingCards.length > 0 
+    ? Math.max(...existingCards.map(c => c.order_index || 0)) 
+    : -1;
+  
+  Flashcard.create(req.params.setId, word, definition, 0, maxOrder + 1);
   res.redirect(`/sets/${req.params.setId}`);
 });
 

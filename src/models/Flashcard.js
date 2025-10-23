@@ -1,12 +1,12 @@
 const { db } = require('../database/init');
 
 class Flashcard {
-  static create(setId, word, definition, isStarred = 0) {
+  static create(setId, word, definition, isStarred = 0, orderIndex = 0) {
     const stmt = db.prepare(`
-      INSERT INTO flashcards (set_id, word, definition, is_starred)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO flashcards (set_id, word, definition, is_starred, order_index)
+      VALUES (?, ?, ?, ?, ?)
     `);
-    const result = stmt.run(setId, word, definition, isStarred);
+    const result = stmt.run(setId, word, definition, isStarred, orderIndex);
     return result.lastInsertRowid;
   }
 
@@ -16,7 +16,7 @@ class Flashcard {
   }
 
   static findBySetId(setId) {
-    const stmt = db.prepare('SELECT * FROM flashcards WHERE set_id = ? ORDER BY created_at DESC');
+    const stmt = db.prepare('SELECT * FROM flashcards WHERE set_id = ? ORDER BY order_index ASC, id ASC');
     return stmt.all(setId);
   }
 
