@@ -87,7 +87,7 @@
         <% if (set.source_set_id) { %>
           <!-- Cloned set: Only show Export if allowed -->
           <% if (set.allow_export) { %>
-            <a href="/sets/<%= set.id %>/export?termSep=tab&cardSep=newline" class="flex-1 xs:flex-initial text-center bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 text-sm whitespace-nowrap">
+            <a href="/sets/<%= set.id %>/export" class="flex-1 xs:flex-initial text-center bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 text-sm whitespace-nowrap">
               <i class="fas fa-download"></i> Export
             </a>
           <% } else { %>
@@ -98,7 +98,7 @@
           <!-- No Import/Add Card buttons for cloned sets -->
         <% } else { %>
           <!-- Original set: Show all buttons -->
-          <a href="/sets/<%= set.id %>/export?termSep=tab&cardSep=newline" class="flex-1 xs:flex-initial text-center bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 text-sm whitespace-nowrap">
+          <a href="/sets/<%= set.id %>/export" class="flex-1 xs:flex-initial text-center bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 text-sm whitespace-nowrap">
             <i class="fas fa-download"></i> Export
           </a>
           <button onclick="toggleImportForm()" class="flex-1 xs:flex-initial bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 text-sm whitespace-nowrap">

@@ -35,9 +35,12 @@ const createTables = () => {
       user_id INTEGER NOT NULL,
       name TEXT NOT NULL,
       description TEXT,
+      source_folder_id INTEGER DEFAULT NULL,
+      allow_export INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (source_folder_id) REFERENCES folders(id) ON DELETE SET NULL
     )
   `);
 
@@ -49,10 +52,13 @@ const createTables = () => {
       folder_id INTEGER,
       name TEXT NOT NULL,
       description TEXT,
+      source_set_id INTEGER DEFAULT NULL,
+      allow_export INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE SET NULL
+      FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE SET NULL,
+      FOREIGN KEY (source_set_id) REFERENCES sets(id) ON DELETE SET NULL
     )
   `);
 
@@ -137,6 +143,19 @@ const createTables = () => {
     )
   `);
 
+  // Folder-Sets junction table for many-to-many relationship
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS folder_sets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      folder_id INTEGER NOT NULL,
+      set_id INTEGER NOT NULL,
+      added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE,
+      FOREIGN KEY (set_id) REFERENCES sets(id) ON DELETE CASCADE,
+      UNIQUE(folder_id, set_id)
+    )
+  `);
+
   // Set shares table - for sharing sets between users
   db.exec(`
     CREATE TABLE IF NOT EXISTS set_shares (
@@ -146,6 +165,7 @@ const createTables = () => {
       shared_with_user_id INTEGER NOT NULL,
       is_accepted INTEGER DEFAULT 0,
       share_token TEXT UNIQUE NOT NULL,
+      allow_export INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       accepted_at DATETIME,
       FOREIGN KEY (set_id) REFERENCES sets(id) ON DELETE CASCADE,
@@ -164,6 +184,7 @@ const createTables = () => {
       shared_with_user_id INTEGER NOT NULL,
       is_accepted INTEGER DEFAULT 0,
       share_token TEXT UNIQUE NOT NULL,
+      allow_export INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       accepted_at DATETIME,
       FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE,

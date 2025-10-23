@@ -1,12 +1,13 @@
 # Deployment Guide for AWS EC2 Free Tier
 
-This guide will help you deploy the Quizlet Learning App to an AWS EC2 free tier instance.
+This guide will help you deploy the Qi Learning App to an AWS EC2 free tier instance.
 
 ## Prerequisites
 
 - AWS Account
 - EC2 instance (Amazon Linux 2 or Ubuntu)
 - SSH access to your EC2 instance
+- Basic command line knowledge
 
 ## Step-by-Step Deployment
 
@@ -65,11 +66,36 @@ Or upload files manually:
 scp -i your-key.pem -r ./quizlet-app ec2-user@your-ec2-ip:~/
 ```
 
-### 6. Configure Environment
+### 6. Automated Deployment (Recommended)
+
+The easiest way to deploy is using the automated deployment script:
+
+```bash
+chmod +x init-deploy.sh
+./init-deploy.sh
+```
+
+This script will automatically:
+- Check and install Node.js if needed
+- Install dependencies
+- Create .env file with random SESSION_SECRET
+- Initialize database
+- Install and configure PM2
+- Configure firewall
+- Start the application
+
+**That's it!** The app will be running on port 80.
+
+### 7. Manual Deployment (Alternative)
+
+If you prefer manual setup:
 
 ```bash
 # Copy environment file
 cp .env.example .env
+
+# Generate random secret
+openssl rand -base64 32
 
 # Edit .env file
 nano .env
@@ -78,25 +104,20 @@ nano .env
 Set a strong SESSION_SECRET:
 
 ```env
-PORT=3000
+PORT=80
 NODE_ENV=production
-SESSION_SECRET=your-very-long-random-secret-key-here
-APP_NAME=Quizlet Learning App
+SESSION_SECRET=your-generated-secret-from-above
+APP_NAME=Qi Learning App
 ```
 
 Save and exit (Ctrl+X, Y, Enter)
 
-### 7. Run Boot Script
+Install dependencies and initialize:
 
 ```bash
-chmod +x boot.sh
-./boot.sh
+npm install --production
+npm run init-db
 ```
-
-The app will:
-- Install dependencies
-- Initialize database
-- Start the server
 
 ### 8. Test the Application
 
@@ -203,9 +224,25 @@ sudo certbot --nginx -d your-domain.com
 
 ### Update Application
 
+**Using automated script (Recommended):**
+
+```bash
+cd ~/quizlet-app
+./update-deploy.sh
+```
+
+This will:
+- Backup database
+- Pull latest code (if using git)
+- Update dependencies
+- Restart application
+
+**Manual update:**
+
 ```bash
 cd ~/quizlet-app
 git pull origin main
+npm install --production
 pm2 restart quizlet-app
 ```
 

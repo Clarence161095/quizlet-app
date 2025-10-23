@@ -1,315 +1,372 @@
 # Qi Learning App
 
-A complete flashcard learning application with spaced repetition system.
+<div align="center">
 
-## Features
+**A powerful flashcard learning application with spaced repetition for effective long-term memorization**
 
-- ✅ **User Management**: Simple authentication with admin approval
-- ✅ **MFA Support**: Google Authenticator/Microsoft Authenticator for admin
-- ✅ **Folders & Sets**: Organize flashcards in folders and sets
-- ✅ **Flashcards**: Create, edit, delete flashcards with word/definition
-- ✅ **Multiple Choice**: Support for quiz-style multiple choice questions
-- ✅ **Personal Notes**: User-specific notes for each flashcard (markdown supported)
-- ✅ **Spaced Repetition**: Long-term learning based on SM-2 algorithm
-  - Cards appear after 1, 3, 7, 15, 30, 60, 90 days
-  - Mastered after 7 consecutive correct answers
-  - Lower weight for mastered cards
-- ✅ **Random Study**: Random practice with all cards or starred cards only
-- ✅ **Import/Export**: Import/export flashcards with custom separators
-- ✅ **Starred Cards**: Mark favorite cards for quick review
-- ✅ **Mobile First**: Responsive design optimized for mobile devices
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/your-repo/releases)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org)
 
-## Tech Stack
+[Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Deployment](#deployment)
 
-- **Backend**: Node.js + Express.js
-- **Database**: SQLite3 (better-sqlite3)
-- **Template Engine**: EJS
-- **Styling**: Tailwind CSS
-- **Authentication**: Passport.js + bcryptjs
-- **MFA**: Speakeasy + QRCode
-- **Session**: Express-session + connect-sqlite3
+</div>
 
-## Installation
+---
 
-### Local Development
+## 📖 Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Documentation](#documentation)
+- [Deployment](#deployment)
+- [Usage Guide](#usage-guide)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
+
+## 🎯 Overview
+
+Qi Learning App is a comprehensive flashcard-based learning system designed to help students and learners retain information effectively using the scientifically-proven **SM-2 spaced repetition algorithm**. Built with simplicity and efficiency in mind, it runs on minimal resources and is perfect for deployment on AWS EC2 free tier.
+
+### Why Qi Learning App?
+
+- ✅ **Scientifically Proven**: Uses SM-2 algorithm for optimal long-term retention
+- ✅ **Mobile-First Design**: Fully responsive, optimized for learning on-the-go
+- ✅ **Lightweight**: Runs efficiently on free-tier cloud instances
+- ✅ **Privacy-Focused**: Self-hosted, your data stays with you
+- ✅ **Simple & Fast**: No complex UI, focus on learning
+- ✅ **Flexible Organization**: Hierarchical folder/set structure
+
+## ✨ Features
+
+### Core Learning Features
+
+- **🎯 Spaced Repetition System**
+  - SM-2 algorithm implementation
+  - Intervals: 1, 3, 7, 15, 30, 60, 90+ days
+  - Automatic mastery tracking (7 consecutive correct)
+  - Adaptive difficulty (ease factor adjustment)
+
+- **📚 Study Modes**
+  - **Long-term Learning**: Spaced repetition for memorization
+  - **Random Practice**: Shuffle all cards or starred cards only
+  - **Focus Mode**: Distraction-free fullscreen study
+
+- **🗂️ Content Organization**
+  - Hierarchical structure: Folders → Sets → Flashcards
+  - Many-to-many folder-set relationships
+  - Starred cards for quick access
+  - Personal notes for each flashcard (Markdown supported)
+
+### Advanced Features
+
+- **📥 Bulk Import/Export**
+  - Customizable separators (term/definition, notes)
+  - Multi-choice quiz format support
+  - Preview before import
+  - Plain text export
+
+- **🤝 Sharing System**
+  - Share sets/folders with other users
+  - Clone-based sharing (independent copies)
+  - Update from source (pull latest changes)
+  - Export permission control
+
+- **🔐 Security & Authentication**
+  - Session-based authentication
+  - Multi-Factor Authentication (MFA) for admins
+  - Bcrypt password hashing
+  - SQL injection protection
+
+- **👥 User Management** (Admin)
+  - Create and manage users
+  - Activate/deactivate accounts
+  - Password reset
+  - Admin-only panel with MFA requirement
+
+## 🛠️ Technology Stack
+
+| Component | Technology |
+|-----------|------------|
+| **Backend** | Node.js + Express.js |
+| **Database** | SQLite 3 (better-sqlite3) |
+| **Template Engine** | EJS |
+| **Styling** | Tailwind CSS (CDN) |
+| **Authentication** | Passport.js + bcryptjs |
+| **MFA** | Speakeasy + QRCode |
+| **Session Storage** | connect-sqlite3 |
+| **Process Manager** | PM2 (production) |
+
+### Why These Technologies?
+
+- **SQLite**: Serverless, file-based, perfect for single-server deployment
+- **EJS**: Simple server-side rendering, no build step required
+- **Tailwind CSS**: Rapid UI development with mobile-first approach
+- **Better-sqlite3**: Synchronous API for simplicity and reliability
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+ (LTS recommended)
+- npm 9+
+- Git
+
+### Installation (Local Development)
 
 ```bash
 # 1. Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/your-username/quizlet-app.git
 cd quizlet-app
 
 # 2. Install dependencies
 npm install
 
-# 3. Copy environment file
+# 3. Create environment file
 cp .env.example .env
 
-# 4. Edit .env and set your SESSION_SECRET
+# 4. Edit .env and set SESSION_SECRET
+# Generate a random secret: openssl rand -base64 32
 nano .env
 
 # 5. Initialize database
 npm run init-db
 
-# 6. Start the application
-npm start
+# 6. Start development server
+npm run dev
 ```
 
-The app will run on `http://localhost:3000`
+The app will be available at `http://localhost:3000`
 
-**Default admin credentials**: `admin` / `admin123`
+**Default admin credentials:**
+- Username: `admin`
+- Password: `admin123`
 
-### Production Deployment (EC2 Free Tier)
+⚠️ **Change the admin password immediately after first login!**
+
+### Quick Deploy (AWS EC2)
 
 ```bash
-# 1. SSH to your EC2 instance
+# SSH to your EC2 instance
 ssh -i your-key.pem ec2-user@your-ec2-ip
 
-# 2. Install Node.js (if not already installed)
-curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
-sudo yum install -y nodejs
-
-# 3. Clone your repository
-git clone <your-repo-url>
+# Clone and deploy
+git clone https://github.com/your-username/quizlet-app.git
 cd quizlet-app
-
-# 4. Run the boot script
-chmod +x boot.sh
-./boot.sh
+chmod +x init-deploy.sh
+./init-deploy.sh
 ```
 
-## Project Structure
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
+
+## 📁 Project Structure
 
 ```
 quizlet-app/
 ├── src/
+│   ├── server.js              # Main Express application
 │   ├── config/
-│   │   └── passport.js          # Passport authentication config
+│   │   └── passport.js        # Passport authentication config
 │   ├── database/
-│   │   └── init.js              # Database initialization
+│   │   ├── init.js            # Database initialization
+│   │   ├── MIGRATION.md       # Database migration guide
+│   │   └── README.md          # Database documentation
 │   ├── middleware/
-│   │   └── auth.js              # Authentication middleware
-│   ├── models/
-│   │   ├── User.js              # User model
-│   │   ├── Folder.js            # Folder model
-│   │   ├── Set.js               # Set model
-│   │   ├── Flashcard.js         # Flashcard model
-│   │   ├── LearningProgress.js  # Spaced repetition model
-│   │   └── UserNote.js          # User notes model
-│   ├── routes/
-│   │   ├── auth.js              # Authentication routes
-│   │   ├── admin.js             # Admin panel routes
-│   │   ├── dashboard.js         # Dashboard routes
-│   │   ├── folders.js           # Folder management
-│   │   ├── sets.js              # Set management
-│   │   ├── flashcards.js        # Flashcard management
-│   │   └── study.js             # Study session routes
-│   ├── views/
-│   │   ├── layout.ejs           # Main layout template
-│   │   ├── auth/                # Authentication views
-│   │   ├── dashboard/           # Dashboard views
-│   │   ├── admin/               # Admin panel views
-│   │   ├── folders/             # Folder views
-│   │   ├── sets/                # Set views
-│   │   ├── flashcards/          # Flashcard views
-│   │   └── study/               # Study session views
-│   └── server.js                # Main server file
-├── data/
-│   ├── quizlet.db              # SQLite database (auto-created)
-│   └── sessions.db             # Session storage (auto-created)
-├── public/
-│   └── (static assets)
+│   │   └── auth.js            # Authentication middleware
+│   ├── models/                # Data models (Active Record pattern)
+│   │   ├── User.js
+│   │   ├── Folder.js
+│   │   ├── Set.js
+│   │   ├── Flashcard.js
+│   │   ├── LearningProgress.js
+│   │   ├── UserNote.js
+│   │   └── README.md
+│   ├── routes/                # Express route handlers
+│   │   ├── auth.js
+│   │   ├── admin.js
+│   │   ├── dashboard.js
+│   │   ├── folders.js
+│   │   ├── sets.js
+│   │   ├── flashcards.js
+│   │   ├── study.js
+│   │   ├── shares.js
+│   │   └── README.md
+│   ├── views/                 # EJS templates
+│   │   ├── layout.ejs
+│   │   └── ...
+│   └── helpers/
+│       └── viewHelper.js
+├── data/                      # SQLite databases (created on init)
+│   ├── quizlet.db
+│   └── sessions.db
+├── design/                    # Design documentation
+│   ├── basic-design.md
+│   └── detailed-design.md
+├── public/                    # Static assets
+├── .env                       # Environment variables (not in git)
+├── .env.example               # Environment template
 ├── package.json
-├── .env.example
-├── .gitignore
-├── boot.sh                     # Production boot script
-└── README.md
+├── init-deploy.sh             # Initial deployment script
+├── update-deploy.sh           # Update deployment script
+├── README.md                  # This file
+├── DEVELOPMENT.md             # Development guide
+└── DEPLOYMENT.md              # Deployment guide
 ```
 
-## Usage Guide
+## 📚 Documentation
 
-### First Time Setup
+### User Documentation
 
-1. Login with default admin credentials: `admin` / `admin123`
-2. Setup MFA (required for admin)
-3. Change your password
-4. Create users from Admin panel
+- **[Usage Guide](#usage-guide)** - How to use the app
 
-### Creating Flashcards
+### Developer Documentation
 
-**Method 1: Manual Creation**
-1. Create a Folder (optional)
-2. Create a Set
-3. Add Flashcards one by one
+- **[Development Guide](DEVELOPMENT.md)** - Setup and development workflow
+- **[Database Guide](src/database/README.md)** - Database schema and access patterns
+- **[Models Guide](src/models/README.md)** - Data model documentation
+- **[Routes Guide](src/routes/README.md)** - API endpoints and route handlers
+- **[Database Migration](src/database/MIGRATION.md)** - Schema changes and migration
 
-**Method 2: Bulk Import**
-1. Create a Set
-2. Go to Import
-3. Enter flashcards in format:
-   ```
-   Word1<TAB>Definition1
-   Word2<TAB>Definition2
-   ```
-4. Customize separators if needed
-5. Preview and import
+### Design Documentation
 
-**Method 3: Multiple Choice Questions**
-```
-Word: What is the capital of Vietnam?
-A. Hanoi
-B. Ho Chi Minh
-C. Da Nang
-D. Hue
+- **[Basic Design](design/basic-design.md)** - High-level architecture and features
+- **[Detailed Design](design/detailed-design.md)** - In-depth technical design with diagrams
 
-Definition: A
+## 🌐 Deployment
+
+### Option 1: Automated Deployment (Recommended)
+
+For AWS EC2 or similar Linux servers:
+
+```bash
+# Initial deployment
+./init-deploy.sh
+
+# Update deployment (after code changes)
+./update-deploy.sh
 ```
 
-### Study Modes
+### Option 2: Manual Deployment
 
-**Long-term Learning** (Spaced Repetition)
-- Cards appear based on your memory performance
-- Intervals: 1, 3, 7, 15, 30, 60, 90 days
-- Mark as mastered after 7 consecutive correct answers
+See [DEPLOYMENT.md](DEPLOYMENT.md) for:
+- AWS EC2 free tier setup
+- Port configuration (port 80)
+- PM2 process management
+- Security group settings
+- Database backup strategies
 
-**Random Study**
-- Practice all cards in random order
-- Filter by starred cards only
-- Good for quick review
+## 📖 Usage Guide
 
-### Personal Notes
+### Creating Your First Set
 
-- Add markdown notes to any flashcard
-- Notes are private to your account
-- Great for additional context or mnemonics
+1. **Login** with admin credentials
+2. **Setup MFA** (required for admin, scan QR code)
+3. **Change password** (security best practice)
+4. **Create a folder** (optional, for organization)
+5. **Create a set**
+6. **Add flashcards** (manual, import, or multi-choice)
 
-## Database Schema
+### Importing Flashcards
 
-### Users
-- id, username, password, email, is_admin, is_active, mfa_secret, mfa_enabled
-
-### Folders
-- id, user_id, name, description
-
-### Sets
-- id, user_id, folder_id, name, description
-
-### Flashcards
-- id, set_id, word, definition, is_starred
-
-### User Notes
-- id, user_id, flashcard_id, note
-
-### Learning Progress
-- id, user_id, flashcard_id, ease_factor, interval_days, repetitions
-- next_review_date, last_review_date, consecutive_correct, is_mastered
-
-## API Endpoints
-
-### Authentication
-- `GET /auth/login` - Login page
-- `POST /auth/login` - Login submit
-- `GET /auth/mfa-setup` - MFA setup
-- `POST /auth/mfa-setup` - MFA setup submit
-- `GET /auth/mfa-verify` - MFA verification
-- `POST /auth/mfa-verify` - MFA verification submit
-- `GET /auth/change-password` - Change password page
-- `POST /auth/change-password` - Change password submit
-- `GET /auth/logout` - Logout
-
-### Dashboard
-- `GET /dashboard` - Main dashboard
-
-### Admin
-- `GET /admin` - Admin panel
-- `GET /admin/users/create` - Create user page
-- `POST /admin/users/create` - Create user submit
-- `POST /admin/users/:id/toggle-active` - Toggle user active status
-- `POST /admin/users/:id/delete` - Delete user
-- `POST /admin/users/:id/reset-password` - Reset user password
-
-### Folders
-- `GET /folders` - List folders
-- `GET /folders/create` - Create folder page
-- `POST /folders/create` - Create folder submit
-- `GET /folders/:id` - View folder
-- `GET /folders/:id/edit` - Edit folder page
-- `POST /folders/:id/edit` - Edit folder submit
-- `POST /folders/:id/delete` - Delete folder
-- `GET /folders/:id/study` - Study folder (long-term)
-- `GET /folders/:id/random` - Random study folder
-
-### Sets
-- `GET /sets` - List sets
-- `GET /sets/create` - Create set page
-- `POST /sets/create` - Create set submit
-- `GET /sets/:id` - View set
-- `GET /sets/:id/edit` - Edit set page
-- `POST /sets/:id/edit` - Edit set submit
-- `POST /sets/:id/delete` - Delete set
-- `GET /sets/:id/import` - Import flashcards page
-- `POST /sets/:id/import` - Import flashcards submit
-- `GET /sets/:id/export` - Export flashcards
-- `GET /sets/:id/study` - Study set (long-term)
-- `GET /sets/:id/random` - Random study set
-
-### Flashcards
-- `GET /flashcards/create/:setId` - Create flashcard page
-- `POST /flashcards/create/:setId` - Create flashcard submit
-- `GET /flashcards/:id/edit` - Edit flashcard page
-- `POST /flashcards/:id/edit` - Edit flashcard submit
-- `POST /flashcards/:id/toggle-star` - Toggle star
-- `POST /flashcards/:id/delete` - Delete flashcard
-
-### Study
-- `POST /study/answer` - Submit answer
-
-## Environment Variables
-
-```env
-PORT=3000
-NODE_ENV=production
-SESSION_SECRET=your-secret-key-here-change-this-in-production
-APP_NAME=Quizlet Learning App
+**Format:**
+```
+Term<TAB>Definition||Note
+Term<TAB>Definition
 ```
 
-## Security Features
+**Multi-Choice Format:**
+```
+Word: What is the capital of France?
+A. London
+B. Paris
+C. Berlin
+D. Madrid
 
-- Password hashing with bcryptjs
-- MFA support for admin accounts
-- Session-based authentication
-- CSRF protection (via method-override)
-- SQL injection protection (prepared statements)
-- User approval system
+Definition: B
+```
 
-## Performance Optimization
+### Studying
 
-- SQLite for lightweight database
-- Session storage in SQLite
-- Minimal dependencies
-- Optimized for EC2 free tier (1GB RAM)
-- No heavy frameworks or ORMs
+**Long-term Learning (Spaced Repetition):**
+- Click "LEARN" on any set/folder
+- Review due cards based on SM-2 algorithm
+- Answer "Know" or "Don't Know"
 
-## Troubleshooting
+**Random Study:**
+- Click "RANDOM" on any set/folder
+- Shuffle all cards or starred cards only
 
-**Cannot login**
-- Check username/password
-- Ensure user is active (admin must approve)
+**Focus Mode:**
+- Press `F` key during study
+- Exit with `F`, `ESC`, or exit button
 
-**MFA not working**
-- Ensure your device time is synchronized
-- Try re-scanning QR code
+## 💻 Development
 
-**Database errors**
-- Run `npm run init-db` to reinitialize
-- Check data/ folder permissions
+```bash
+# Start with auto-reload (nodemon)
+npm run dev
 
-**Port already in use**
-- Change PORT in .env file
-- Or stop other services using port 3000
+# Start production mode
+npm start
 
-## License
+# Initialize/reset database
+npm run init-db
+```
 
-MIT
+See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development workflow.
 
-## Support
+## 🤝 Contributing
 
-For issues and questions, please create an issue in the repository.
+We welcome contributions!
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Commit Convention
+
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `docs:` - Documentation
+- `refactor:` - Code refactoring
+
+## 📋 Roadmap
+
+### v1.0.0 (Current) ✅
+- [x] Spaced repetition system (SM-2)
+- [x] Import/export with custom separators
+- [x] Sharing system
+- [x] Focus mode
+- [x] MFA for admin
+
+### Future
+- [ ] Image support for flashcards
+- [ ] Mobile app (React Native)
+- [ ] AI-generated flashcards
+- [ ] Export to Anki
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🙏 Acknowledgments
+
+- **SM-2 Algorithm**: Based on SuperMemo 2 by Piotr Woźniak
+- **Tailwind CSS**: For the amazing utility-first CSS framework
+- **Express.js**: For the robust web framework
+
+---
+
+<div align="center">
+
+**Built with ❤️ for effective learning**
+
+[⬆ Back to Top](#qi-learning-app)
+
+</div>

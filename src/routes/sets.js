@@ -331,7 +331,7 @@ router.post('/:id/import-markdown', ensureAuthenticated, checkMFA, (req, res) =>
   res.redirect(`/sets/${req.params.id}`);
 });
 
-// Export flashcards
+// Export flashcards - show export options page
 router.get('/:id/export', ensureAuthenticated, checkMFA, (req, res) => {
   const set = Set.findById(req.params.id);
   
@@ -341,15 +341,113 @@ router.get('/:id/export', ensureAuthenticated, checkMFA, (req, res) => {
 
   const flashcards = Set.getFlashcards(req.params.id);
   
-  const termSep = req.query.termSep === 'tab' ? '\t' : ' ';
-  const cardSep = req.query.cardSep === 'newline' ? '\n' : '\n\n';
+  // Get user notes for each flashcard
+  const UserNote = require('../models/UserNote');
+  flashcards.forEach(card => {
+    const note = UserNote.findByUserAndFlashcard(req.user.id, card.id);
+    card.note = note ? note.note : null;
+  });
   
-  const content = flashcards.map(card => 
-    `${card.word}${termSep}${card.definition}`
-  ).join(cardSep);
+  res.render('sets/export', {
+    title: `Export: ${set.name}`,
+    user: req.user,
+    set,
+    flashcards
+  });
+});
 
-  res.setHeader('Content-Type', 'text/plain');
-  res.setHeader('Content-Disposition', `attachment; filename="${set.name}.txt"`);
+// Export flashcards - download file
+router.get('/:id/export-download', ensureAuthenticated, checkMFA, (req, res) => {
+  const set = Set.findById(req.params.id);
+  
+  if (!set || set.user_id !== req.user.id) {
+    return res.status(404).send('Set not found');
+  }
+
+  const flashcards = Set.getFlashcards(req.params.id);
+  
+  // Get user notes for each flashcard
+  const UserNote = require('../models/UserNote');
+  flashcards.forEach(card => {
+    const note = UserNote.findByUserAndFlashcard(req.user.id, card.id);
+    card.note = note ? note.note : null;
+  });
+  
+  const format = req.query.format || 'custom';
+  let content = '';
+  let filename = '';
+  let contentType = 'text/plain';
+  
+  if (format === 'markdown') {
+    // Markdown format
+    content = flashcards.map(card => {
+      // Check if card has multi-choice format
+      const defLines = card.definition.split('\n');
+      const hasCorrectMarker = defLines.some(line => line.includes('✓ Correct:'));
+      
+      if (hasCorrectMarker) {
+        // Parse multi-choice format
+        const correctLine = defLines.find(line => line.includes('✓ Correct:'));
+        const correctAnswer = correctLine.match(/✓ Correct:\s*([A-Z])/)?.[1];
+        const options = defLines.filter(line => line.match(/^[A-Z]\./));
+        
+        let md = `### ${card.word}\n\n`;
+        options.forEach(opt => {
+          const letter = opt.match(/^([A-Z])\./)?.[1];
+          const isCorrect = letter === correctAnswer;
+          md += `- [${isCorrect ? 'x' : ' '}] ${opt}\n`;
+        });
+        
+        if (card.note) {
+          md += `\nNote: ${card.note}\n`;
+        }
+        
+        return md;
+      } else {
+        // Regular flashcard - convert to simple markdown
+        let md = `### ${card.word}\n\n`;
+        md += `- [x] ${card.definition}\n`;
+        
+        if (card.note) {
+          md += `\nNote: ${card.note}\n`;
+        }
+        
+        return md;
+      }
+    }).join('\n');
+    
+    filename = `${set.name}.md`;
+    contentType = 'text/markdown';
+    
+  } else {
+    // Custom separator format
+    const termSep = req.query.termSep === 'tab' || req.query.termSep === '\\t' 
+      ? '\t' 
+      : req.query.termSep || '\t';
+    
+    const noteSep = req.query.noteSep === '\\t' 
+      ? '\t' 
+      : req.query.noteSep || '||';
+    
+    const cardSep = req.query.cardSep === 'newline' 
+      ? '\n' 
+      : req.query.cardSep === '\\n\\n' 
+        ? '\n\n' 
+        : req.query.cardSep || '\n';
+    
+    content = flashcards.map(card => {
+      let line = `${card.word}${termSep}${card.definition}`;
+      if (card.note) {
+        line += `${noteSep}${card.note}`;
+      }
+      return line;
+    }).join(cardSep);
+    
+    filename = `${set.name}.txt`;
+  }
+
+  res.setHeader('Content-Type', contentType);
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.send(content);
 });
 

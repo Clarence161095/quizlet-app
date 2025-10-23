@@ -1,3 +1,4 @@
+```instructions
 # Copilot Instructions for Qi Learning App
 
 ## Architecture Overview
@@ -15,6 +16,7 @@ This is a **server-rendered flashcard learning app** with spaced repetition buil
 - **No Frontend Framework**: Pure server-side rendering with vanilla JS in `<script>` tags
 - **Session-based Auth**: Passport.js with local strategy, MFA via Speakeasy for admins
 - **EJS Script Extraction Disabled**: `extractScripts: false` in server.js - inline scripts must stay inline or use `DOMContentLoaded`
+- **Mobile First Design**: All UI built with mobile-first responsive approach using Tailwind CSS breakpoints
 
 ## Critical Workflows
 
@@ -70,6 +72,11 @@ Routes use middleware chain: `ensureAuthenticated, checkMFA, (req, res) => { ...
 - **No script extraction**: Use inline `<script>` or wrap in `DOMContentLoaded`
 - **Data passing**: Embed data via `const data = <%- JSON.stringify(serverData) %>;`
 - **Styling**: Tailwind CSS via CDN (no build step), FontAwesome for icons
+- **Mobile-First Responsive**: 
+  - Always start with mobile styles (320px), then add `sm:` (640px), `lg:` (1024px) breakpoints
+  - Custom `xs:` breakpoint at 475px for text toggles
+  - Use `flex-wrap gap-2` for mobile button groups, `sm:flex-nowrap` for desktop
+  - Always show full button text (not just icons) for better UX - users prefer clarity over compactness
 
 ### Import/Export Feature
 - **3 custom separators**: Term/Definition separator, Note separator, Flashcard separator
@@ -77,36 +84,62 @@ Routes use middleware chain: `ensureAuthenticated, checkMFA, (req, res) => { ...
 - Special handling: `\t` or `tab` → actual tab character, `\n\n` → double newline
 - Preview function: Client-side parsing before import (see `src/views/sets/import.ejs`)
 
+### Sharing Feature
+- **Clone-based sharing**: Sets/Folders shared by creating copies (clones) for recipients
+- **Source tracking**: Cloned entities have `source_set_id`/`source_folder_id` pointing to original
+- **Update from source**: Recipients can pull latest changes while keeping learning progress
+- **Export permission**: Owners control if recipients can export cloned content (`allow_export` flag)
+- **Cloned sets restrictions**: Cannot edit/import/add cards directly - must update from source or delete
+- **Share states**: pending (not accepted), accepted (clone exists), accepted but deleted (clone removed)
+
 ### Spaced Repetition System
 Implemented in `src/models/LearningProgress.js`:
-- **Intervals**: 1, 3, 7, 15, 30, 60, 90+ days (SM-2 based)
-- **Mastery**: 7 consecutive correct answers
-- **Ease factor**: 2.5 default, adjusted ±0.1-0.2 per answer
-- **Reset**: Incorrect answer resets consecutive_correct to 0
-- Due cards queried via `next_review_date <= NOW()`, ordered by mastery status
+- **Modified SM-2 Algorithm**: Intervals are 1, 3, 7, 15, 30, 60, then `interval × ease_factor`
+- **Mastery**: 4 consecutive correct answers = PERMANENT mastered status (never resets)
+- **Ease factor**: 2.5 default, +0.1 on correct (max 3.0), -0.2 on incorrect (min 1.3)
+- **Reset behavior**: Incorrect answer resets `consecutive_correct` and `repetitions` to 0, BUT `is_mastered` remains 1 if already mastered
+- **Due cards**: Query `next_review_date <= NOW()`, order by `is_mastered ASC` (learning first, mastered last)
+- **Critical**: Once a card reaches 4 consecutive correct, it stays mastered forever (Vietnamese comment: "KHÔNG BAO GIỜ RESET")
 
 ### Study Session UI Patterns
 - **Flashcard flip animation**: 3D CSS transform with `perspective`, `backface-visibility: hidden`
-- **Statistics cards**: Clickable filters (Total/Mastered/Learning/New/Stars) update displayed cards
+- **Statistics cards**: Clickable filters (Total/**Learned**/Learning/New/Stars) update displayed cards
+  - UI shows "Learned" not "Mastered" - matches user-friendly terminology
 - **Filter state**: Managed via `filteredFlashcards` array, separate from original `flashcards`
   - Saved to localStorage with key `study_filter_{entityType}_{entityId}`
   - Auto-restored on page load/refresh
   - Auto-switches to available filter if selected filter has no cards
 - **Real-time stats**: Update after each answer or star toggle
-- **Fullscreen mode**: Press F or click button to enter focus mode
-  - Hides all UI except flashcard and answer buttons
-  - Maximizes flashcard display area (calc(100vh - 120px))
-  - Shows temporary hint on entry, auto-hides after 3s
-  - Exit button fixed top-right, or press F/ESC to exit
+- **Focus Mode (LEARN button)**: Press F or click LEARN to enter fullscreen study mode
+  - Uses `.hide-in-fullscreen` class on all non-essential UI elements
+  - Only shows: progress bar (compact), flashcard/multi-choice, star button, answer buttons, exit button
+  - Hides: header, stats cards, mode selector, filter info, shortcuts, notes button
+  - Exit via top-right button, F key, or ESC key
+  - Desktop: Better spacing and larger text (responsive media queries)
+- **Star buttons**: No borders, transparent background, scale on hover (1.15x), always visible in corner
+  - Real-time toggle: Force remove/add classes explicitly + trigger repaint with `btn.offsetHeight`
+- **Button Layout Responsive**:
+  - Mobile: `flex-wrap gap-2` with `flex-1` for equal width, full text visible
+  - Desktop: `sm:flex-nowrap sm:flex-initial` for natural sizing
+  - Touch targets: Minimum 44px height (`py-2`) on mobile for accessibility
 
 ## Integration Points
 
 ### Database Schema Relationships
 ```
-users (1) → (many) folders → (many) sets → (many) flashcards
+users (1) → (many) folders
+users (1) → (many) sets
+folders (many) ←→ (many) sets via folder_sets junction table
+sets (1) → (many) flashcards
 users (1) + flashcards (1) → user_notes (unique constraint)
 users (1) + flashcards (1) → learning_progress (unique constraint)
 ```
+
+### Key Database Patterns
+- **Many-to-Many Folders**: Sets can belong to multiple folders via `folder_sets` junction table
+  - `sets.folder_id` kept for backward compatibility but deprecated
+  - Use `Folder.getSetsInFolder()` and `Folder.addSetToFolder()` for folder-set relationships
+  - Order by `added_at` in junction table for chronological display
 
 ### Key Foreign Key Cascades
 - `ON DELETE CASCADE`: Users delete cascades to all owned content
@@ -127,6 +160,9 @@ users (1) + flashcards (1) → learning_progress (unique constraint)
 5. **Filter State Sync**: When toggling stars during filtered view, must refresh filter or risk showing wrong cards
 6. **Null Element Access**: Always check if DOM element exists before setting innerHTML/textContent (filters may not exist in all views)
 7. **Filter Auto-Switch**: When a filter has no cards, system auto-switches to first available filter with data to prevent empty states
+8. **Mobile Button Layout**: Always use `flex-wrap` for mobile, never force buttons to single column with `flex-col` - buttons should wrap naturally
+9. **Star Toggle Realtime**: Must explicitly remove/add classes (not toggle) and force repaint with `element.offsetHeight` for immediate visual update
+10. **Focus Mode CSS**: Use `body.focus-mode-active` prefix for all focus mode styles, apply `.hide-in-fullscreen` class to hide elements
 
 ## Key File References
 
@@ -135,3 +171,4 @@ users (1) + flashcards (1) → learning_progress (unique constraint)
 - **Study Session UI**: `src/views/study/session.ejs` (flip animation CSS at bottom)
 - **Auth Middleware**: `src/middleware/auth.js` (ensureAuthenticated, checkMFA patterns)
 - **DB Schema**: `src/database/init.js` (complete table definitions)
+```
