@@ -10,33 +10,30 @@
           <p class="text-gray-600"><%= folder.description %></p>
         <% } %>
       </div>
-      <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+      <div class="flex flex-wrap gap-2">
         <% if (folder.source_folder_id) { %>
           <!-- Cloned folder: Show Update button -->
-          <form action="/shares/folders/<%= folder.id %>/update-from-source" method="POST" onsubmit="return confirm('This will replace all sets and flashcards with the latest from source. Your learning progress will be kept. Continue?');" class="w-full sm:w-auto">
-            <button type="submit" class="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
-              <i class="fas fa-sync"></i> <span>Update</span>
+          <form action="/shares/folders/<%= folder.id %>/update-from-source" method="POST" onsubmit="return confirm('This will replace all sets and flashcards with the latest from source. Your learning progress will be kept. Continue?');" class="flex-1 sm:flex-initial">
+            <button type="submit" class="w-full sm:w-auto bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 transition text-sm whitespace-nowrap">
+              <i class="fas fa-sync"></i> Update
             </button>
           </form>
         <% } else { %>
-          <!-- Original folder: Show Edit and Manage Sets buttons -->
-          <a href="/folders/<%= folder.id %>/manage-sets" class="w-full sm:w-auto text-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-            <i class="fas fa-layer-group"></i> <span class="hidden md:inline">Manage</span>
-          </a>
-          <a href="/folders/<%= folder.id %>/edit" class="w-full sm:w-auto text-center bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition">
-            <i class="fas fa-edit"></i> <span class="hidden md:inline">Edit</span>
+          <!-- Original folder: Show Edit button only (Manage Sets button is below) -->
+          <a href="/folders/<%= folder.id %>/edit" class="flex-1 sm:flex-initial text-center bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 transition text-sm whitespace-nowrap">
+            <i class="fas fa-edit"></i> Edit
           </a>
         <% } %>
-        <a href="/shares/folders/<%= folder.id %>/share" class="w-full sm:w-auto text-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
-          <i class="fas fa-share-alt"></i> <span class="hidden md:inline">Share</span>
+        <a href="/shares/folders/<%= folder.id %>/share" class="flex-1 sm:flex-initial text-center bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition text-sm whitespace-nowrap">
+          <i class="fas fa-share-alt"></i> Share
         </a>
-        <form action="/folders/<%= folder.id %>/delete" method="POST" class="w-full sm:w-auto">
+        <form action="/folders/<%= folder.id %>/delete" method="POST" class="flex-1 sm:flex-initial">
           <button 
             type="submit" 
-            class="w-full bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+            class="w-full sm:w-auto bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition text-sm whitespace-nowrap"
             onclick="return confirm('Are you sure? This will NOT delete the sets inside, just remove them from this folder.')"
           >
-            <i class="fas fa-trash"></i> <span class="hidden md:inline">Delete</span>
+            <i class="fas fa-trash"></i> Delete
           </button>
         </form>
       </div>
@@ -127,10 +124,10 @@
             </div>
             <div class="flex gap-2">
               <a href="/sets/<%= set.id %>/study" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition text-sm">
-                <i class="fas fa-brain"></i> <span class="hidden sm:inline">Study</span>
+                <i class="fas fa-brain"></i> Study
               </a>
               <a href="/sets/<%= set.id %>" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition text-sm">
-                <i class="fas fa-eye"></i> <span class="hidden sm:inline">View</span>
+                <i class="fas fa-eye"></i> View
               </a>
             </div>
           </div>
