@@ -52,7 +52,7 @@ class Folder {
       INNER JOIN sets s ON f.set_id = s.id
       INNER JOIN folder_sets fs ON s.id = fs.set_id
       WHERE fs.folder_id = ?
-      ORDER BY f.created_at DESC
+      ORDER BY fs.added_at ASC, f.order_index ASC, f.id ASC
     `);
     return stmt.all(folderId);
   }

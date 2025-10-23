@@ -71,7 +71,7 @@ class Set {
   }
 
   static getFlashcards(setId) {
-    const stmt = db.prepare('SELECT * FROM flashcards WHERE set_id = ? ORDER BY created_at DESC');
+    const stmt = db.prepare('SELECT * FROM flashcards WHERE set_id = ? ORDER BY order_index ASC, id ASC');
     return stmt.all(setId);
   }
 }
