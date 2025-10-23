@@ -381,20 +381,50 @@ router.get('/:id/export-download', ensureAuthenticated, checkMFA, (req, res) => 
   if (format === 'markdown') {
     // Markdown format
     content = flashcards.map(card => {
-      // Check if card has multi-choice format
+      // Check which import format was used
+      // Format 1: Markdown import - word contains question + options, definition is "Correct: A, B"
+      // Format 2: Regular import - word is question only, definition contains "A. Option\n✓ Correct: A"
+      
       const defLines = card.definition.split('\n');
       const hasCorrectMarker = defLines.some(line => line.includes('✓ Correct:'));
       
       if (hasCorrectMarker) {
-        // Parse multi-choice format
+        // Format 2: Regular multi-choice import
         const correctLine = defLines.find(line => line.includes('✓ Correct:'));
-        const correctAnswer = correctLine.match(/✓ Correct:\s*([A-Z])/)?.[1];
+        const correctAnswersMatch = correctLine.match(/✓ Correct:\s*([A-Z,\s]+)/);
+        const correctAnswers = correctAnswersMatch 
+          ? correctAnswersMatch[1].split(',').map(a => a.trim())
+          : [];
+        
         const options = defLines.filter(line => line.match(/^[A-Z]\./));
         
         let md = `### ${card.word}\n\n`;
         options.forEach(opt => {
           const letter = opt.match(/^([A-Z])\./)?.[1];
-          const isCorrect = letter === correctAnswer;
+          const isCorrect = correctAnswers.includes(letter);
+          md += `- [${isCorrect ? 'x' : ' '}] ${opt}\n`;
+        });
+        
+        if (card.note) {
+          md += `\nNote: ${card.note}\n`;
+        }
+        
+        return md;
+      } else if (card.definition.match(/^Correct:\s*[A-Z,\s]+$/)) {
+        // Format 1: Markdown import - word has question + options
+        const wordLines = card.word.split('\n');
+        const question = wordLines[0];
+        const options = wordLines.slice(1).filter(line => line.match(/^[A-Z]\./));
+        
+        const correctAnswersMatch = card.definition.match(/Correct:\s*([A-Z,\s]+)/);
+        const correctAnswers = correctAnswersMatch 
+          ? correctAnswersMatch[1].split(',').map(a => a.trim())
+          : [];
+        
+        let md = `### ${question}\n\n`;
+        options.forEach(opt => {
+          const letter = opt.match(/^([A-Z])\./)?.[1];
+          const isCorrect = correctAnswers.includes(letter);
           md += `- [${isCorrect ? 'x' : ' '}] ${opt}\n`;
         });
         
