@@ -1,0 +1,121 @@
+<div class="max-w-4xl mx-auto">
+  <div class="mb-6">
+    <a href="/sets/<%= set.id %>" class="text-blue-600 hover:underline">
+      <i class="fas fa-arrow-left"></i> Back to Set
+    </a>
+  </div>
+
+  <div class="bg-white p-8 rounded-lg shadow">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">
+      <i class="fas fa-plus-circle text-blue-600"></i> Create New Flashcard
+    </h1>
+
+    <div class="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4">
+      <p class="text-sm text-gray-700">
+        <strong>Tip:</strong> You can use Markdown in the definition field for formatted text!
+      </p>
+      <p class="text-sm text-gray-600 mt-1">
+        Examples: **bold**, *italic*, `code`, [link](url)
+      </p>
+    </div>
+
+    <form action="/sets/<%= set.id %>/flashcards/create" method="POST">
+      <div class="mb-6">
+        <label for="term" class="block text-gray-700 font-semibold mb-2">
+          Term (Question) <span class="text-red-500">*</span>
+        </label>
+        <textarea 
+          id="term" 
+          name="term" 
+          rows="4"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          required
+          placeholder="Enter the term or question (multi-line supported)"
+          autofocus
+        ></textarea>
+        <p class="text-sm text-gray-500 mt-2">The front side of the flashcard (supports multi-line text)</p>
+      </div>
+
+      <div class="mb-6">
+        <label for="definition" class="block text-gray-700 font-semibold mb-2">
+          Definition <span class="text-red-500">*</span>
+        </label>
+        <textarea 
+          id="definition" 
+          name="definition" 
+          rows="6"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          required
+          placeholder="Enter the definition or answer"
+        ></textarea>
+        <p class="text-sm text-gray-500 mt-2">The back side of the flashcard (supports Markdown)</p>
+      </div>
+
+      <div class="mb-6">
+        <label for="user_note" class="block text-gray-700 font-semibold mb-2">
+          Personal Note
+        </label>
+        <textarea 
+          id="user_note" 
+          name="user_note" 
+          rows="4"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          placeholder="Add your personal notes about this flashcard (optional)"
+        ></textarea>
+        <p class="text-sm text-gray-500 mt-2">
+          Your private notes - only you can see these (supports Markdown)
+        </p>
+      </div>
+
+      <div class="mb-6">
+        <label class="flex items-center">
+          <input 
+            type="checkbox" 
+            name="is_starred" 
+            value="1"
+            class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          >
+          <span class="ml-3 text-gray-700">
+            <i class="fas fa-star text-yellow-500"></i> Star this flashcard
+          </span>
+        </label>
+        <p class="text-sm text-gray-500 mt-2 ml-8">
+          Mark important flashcards to study them separately
+        </p>
+      </div>
+
+      <div class="flex space-x-4">
+        <button 
+          type="submit" 
+          class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+        >
+          <i class="fas fa-plus"></i> Create Flashcard
+        </button>
+        <a 
+          href="/sets/<%= set.id %>" 
+          class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition"
+        >
+          <i class="fas fa-times"></i> Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <div class="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-6">
+    <h3 class="font-semibold text-gray-800 mb-3">
+      <i class="fas fa-info-circle text-blue-600"></i> Markdown Reference
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <div>
+        <p class="text-gray-600 mb-1"><code>**bold text**</code></p>
+        <p class="text-gray-600 mb-1"><code>*italic text*</code></p>
+        <p class="text-gray-600"><code>`code`</code></p>
+      </div>
+      <div>
+        <p class="text-gray-600 mb-1"><code>[link text](url)</code></p>
+        <p class="text-gray-600 mb-1"><code>- list item</code></p>
+        <p class="text-gray-600"><code>1. numbered item</code></p>
+      </div>
+    </div>
+  </div>
+</div>

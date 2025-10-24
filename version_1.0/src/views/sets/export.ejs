@@ -1,0 +1,231 @@
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <h1 class="text-2xl font-bold mb-6">Export Set: <%= set.name %></h1>
+    
+    <form id="exportForm" method="GET" action="/sets/<%= set.id %>/export-download">
+      
+      <!-- Export Format Selection -->
+      <div class="mb-8">
+        <label class="block text-gray-700 font-bold mb-3">Select Export Format:</label>
+        
+        <div class="space-y-4">
+          <!-- Format 1: Custom Separator -->
+          <div class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onclick="selectFormat('custom')">
+            <div class="flex items-start">
+              <input type="radio" id="format-custom" name="format" value="custom" class="mt-1" checked>
+              <div class="ml-3 flex-1">
+                <label for="format-custom" class="font-semibold text-gray-800 cursor-pointer">
+                  Custom Separator Format
+                </label>
+                <p class="text-sm text-gray-600 mt-1">
+                  Plain text with customizable separators. Compatible with import feature.
+                </p>
+                <div id="custom-format-options" class="mt-4 space-y-3">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      Term/Definition Separator:
+                    </label>
+                    <div class="flex gap-2">
+                      <input type="text" name="termSep" value="tab" 
+                             class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm"
+                             placeholder="tab, \t, or custom">
+                      <span class="text-xs text-gray-500 self-center">Default: TAB</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      Note Separator:
+                    </label>
+                    <div class="flex gap-2">
+                      <input type="text" name="noteSep" value="||" 
+                             class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm"
+                             placeholder="|| or custom">
+                      <span class="text-xs text-gray-500 self-center">Default: ||</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      Flashcard Separator:
+                    </label>
+                    <div class="flex gap-2">
+                      <input type="text" name="cardSep" value="newline" 
+                             class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm"
+                             placeholder="newline, \n\n, or custom">
+                      <span class="text-xs text-gray-500 self-center">Default: Single newline</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Format 2: Markdown -->
+          <div class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onclick="selectFormat('markdown')">
+            <div class="flex items-start">
+              <input type="radio" id="format-markdown" name="format" value="markdown" class="mt-1">
+              <div class="ml-3 flex-1">
+                <label for="format-markdown" class="font-semibold text-gray-800 cursor-pointer">
+                  Markdown Format (Multi-Choice)
+                </label>
+                <p class="text-sm text-gray-600 mt-1">
+                  Export as markdown with checkbox format. Perfect for multi-choice questions.
+                </p>
+                <div class="mt-3 bg-gray-100 p-3 rounded text-xs font-mono">
+                  <div class="text-gray-700">### Question text here?</div>
+                  <div class="text-gray-700 mt-1">- [ ] Wrong option A</div>
+                  <div class="text-green-600">- [x] Correct option B</div>
+                  <div class="text-gray-700">- [ ] Wrong option C</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Preview Section -->
+      <div class="mb-6 bg-gray-50 rounded-lg p-4">
+        <h3 class="font-semibold text-gray-700 mb-2">
+          <i class="fas fa-eye"></i> Preview (first 3 cards):
+        </h3>
+        <div id="preview" class="bg-white border rounded p-3 font-mono text-sm whitespace-pre-wrap overflow-x-auto" style="max-height: 300px;">
+          Loading preview...
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="flex gap-3">
+        <button type="submit" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-semibold">
+          <i class="fas fa-download"></i> Download Export File
+        </button>
+        <a href="/sets/<%= set.id %>" class="flex-1 text-center bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 font-semibold">
+          <i class="fas fa-times"></i> Cancel
+        </a>
+      </div>
+      
+    </form>
+  </div>
+</div>
+
+<script>
+  // Embedded data from server
+  const flashcards = <%- JSON.stringify(flashcards) %>;
+  
+  function selectFormat(format) {
+    if (format === 'custom') {
+      document.getElementById('format-custom').checked = true;
+      document.getElementById('custom-format-options').style.display = 'block';
+    } else {
+      document.getElementById('format-markdown').checked = true;
+      document.getElementById('custom-format-options').style.display = 'none';
+    }
+    updatePreview();
+  }
+  
+  function updatePreview() {
+    const format = document.querySelector('input[name="format"]:checked').value;
+    const preview = document.getElementById('preview');
+    
+    // Take first 3 cards for preview
+    const previewCards = flashcards.slice(0, 3);
+    
+    if (format === 'custom') {
+      // Custom separator format
+      const termSep = document.querySelector('input[name="termSep"]').value;
+      const noteSep = document.querySelector('input[name="noteSep"]').value;
+      const cardSep = document.querySelector('input[name="cardSep"]').value;
+      
+      // Convert separators
+      const actualTermSep = (termSep === 'tab' || termSep === '\\t') ? '\t' : termSep;
+      const actualNoteSep = (noteSep === '\\t') ? '\t' : noteSep;
+      const actualCardSep = (cardSep === 'newline') ? '\n' : (cardSep === '\\n\\n' ? '\n\n' : cardSep);
+      
+      const content = previewCards.map(card => {
+        let line = `${card.word}${actualTermSep}${card.definition}`;
+        if (card.note) {
+          line += `${actualNoteSep}${card.note}`;
+        }
+        return line;
+      }).join(actualCardSep);
+      
+      preview.textContent = content + '\n\n... (' + (flashcards.length - 3) + ' more cards)';
+      
+    } else {
+      // Markdown format
+      const content = previewCards.map(card => {
+        // Check which import format was used
+        const defLines = card.definition.split('\n');
+        const hasCorrectMarker = defLines.some(line => line.includes('✓ Correct:'));
+        
+        if (hasCorrectMarker) {
+          // Format 2: Regular multi-choice import
+          const correctLine = defLines.find(line => line.includes('✓ Correct:'));
+          const correctAnswersMatch = correctLine.match(/✓ Correct:\s*([A-Z,\s]+)/);
+          const correctAnswers = correctAnswersMatch 
+            ? correctAnswersMatch[1].split(',').map(a => a.trim())
+            : [];
+          
+          const options = defLines.filter(line => line.match(/^[A-Z]\./));
+          
+          let md = `### ${card.word}\n\n`;
+          options.forEach(opt => {
+            const letter = opt.match(/^([A-Z])\./)?.[1];
+            const isCorrect = correctAnswers.includes(letter);
+            md += `- [${isCorrect ? 'x' : ' '}] ${opt}\n`;
+          });
+          
+          if (card.note) {
+            md += `\nNote: ${card.note}\n`;
+          }
+          
+          return md;
+        } else if (card.definition.match(/^Correct:\s*[A-Z,\s]+$/)) {
+          // Format 1: Markdown import - word has question + options
+          const wordLines = card.word.split('\n');
+          const question = wordLines[0];
+          const options = wordLines.slice(1).filter(line => line.match(/^[A-Z]\./));
+          
+          const correctAnswersMatch = card.definition.match(/Correct:\s*([A-Z,\s]+)/);
+          const correctAnswers = correctAnswersMatch 
+            ? correctAnswersMatch[1].split(',').map(a => a.trim())
+            : [];
+          
+          let md = `### ${question}\n\n`;
+          options.forEach(opt => {
+            const letter = opt.match(/^([A-Z])\./)?.[1];
+            const isCorrect = correctAnswers.includes(letter);
+            md += `- [${isCorrect ? 'x' : ' '}] ${opt}\n`;
+          });
+          
+          if (card.note) {
+            md += `\nNote: ${card.note}\n`;
+          }
+          
+          return md;
+        } else {
+          // Regular flashcard - convert to markdown format
+          let md = `### ${card.word}\n\n`;
+          md += `- [x] ${card.definition}\n`;
+          
+          if (card.note) {
+            md += `\nNote: ${card.note}\n`;
+          }
+          
+          return md;
+        }
+      }).join('\n');
+      
+      preview.textContent = content + '\n\n... (' + (flashcards.length - 3) + ' more cards)';
+    }
+  }
+  
+  // Update preview on input change
+  document.querySelectorAll('input[name="format"], input[name="termSep"], input[name="noteSep"], input[name="cardSep"]').forEach(input => {
+    input.addEventListener('change', updatePreview);
+    input.addEventListener('input', updatePreview);
+  });
+  
+  // Initial preview
+  document.addEventListener('DOMContentLoaded', updatePreview);
+</script>

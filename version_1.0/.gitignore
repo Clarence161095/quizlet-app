@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.DS_Store
+.vscode/
+data/
+deploy-to-ec2.sh
+ssh-ec2.sh
+update-ec2.sh

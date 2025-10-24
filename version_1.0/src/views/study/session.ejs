@@ -1,0 +1,2829 @@
+<div class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6" id="study-container">
+  <div class="mb-4 sm:mb-6 hide-in-fullscreen" id="header-section">
+    <div class="flex justify-between items-center">
+      <div class="flex-1 min-w-0">
+        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-1 sm:mb-2 cursor-pointer hover:text-blue-600 transition truncate" onclick="goBackToSet()">
+          <i class="fas fa-arrow-left text-blue-600 text-base sm:text-xl"></i> <%= title %>
+        </h1>
+        <p class="text-xs sm:text-sm lg:text-base text-gray-600">
+          <% if (studyType === 'long_term') { %>
+            Long-term learning with spaced repetition
+          <% } else if (studyType === 'random_all') { %>
+            Random practice - All cards
+          <% } else { %>
+            Random practice - Starred cards only
+          <% } %>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <% if (!flashcards || flashcards.length === 0) { %>
+    <!-- No flashcards -->
+    <div class="bg-white p-12 rounded-lg shadow text-center">
+      <i class="fas fa-check-circle text-6xl text-green-500 mb-4"></i>
+      <h2 class="text-2xl font-bold text-gray-800 mb-2">All done!</h2>
+      <p class="text-gray-600 mb-6">
+        <% if (studyType === 'long_term') { %>
+          No cards due for review right now. Come back later!
+        <% } else { %>
+          No flashcards available for this study mode.
+        <% } %>
+      </p>
+      <a href="/dashboard" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+        <i class="fas fa-home"></i> Back to Dashboard
+      </a>
+    </div>
+  <% } else { %>
+    <!-- Stats Cards - Mobile First Responsive -->
+    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 hide-in-fullscreen" id="stats-section">
+      <button onclick="filterCards('all')" id="stat-all" class="stat-card bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-blue-500 text-center col-span-2 sm:col-span-1">
+        <p class="text-gray-600 text-xs sm:text-sm mb-0.5 sm:mb-1">Total</p>
+        <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800" id="stat-total"><%= flashcards.length %></p>
+      </button>
+      <button onclick="filterCards('learned')" id="stat-learned" class="stat-card bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-green-500 text-center">
+        <p class="text-gray-600 text-xs sm:text-sm mb-0.5 sm:mb-1">Learned</p>
+        <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600" id="stat-learned-count">0</p>
+      </button>
+      <button onclick="filterCards('learning')" id="stat-learning" class="stat-card bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-yellow-500 text-center">
+        <p class="text-gray-600 text-xs sm:text-sm mb-0.5 sm:mb-1">Learning</p>
+        <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600" id="stat-learning-count">0</p>
+      </button>
+      <button onclick="filterCards('new')" id="stat-new" class="stat-card bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-blue-500 text-center">
+        <p class="text-gray-600 text-xs sm:text-sm mb-0.5 sm:mb-1">New</p>
+        <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600" id="stat-new-count">0</p>
+      </button>
+      <button onclick="filterCards('starred')" id="stat-starred" class="stat-card bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-yellow-500 text-center">
+        <p class="text-gray-600 text-xs sm:text-sm mb-0.5 sm:mb-1">Stars</p>
+        <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-500" id="stat-starred-count">0</p>
+      </button>
+      <!-- <button onclick="filterCards('starred')" id="stat-starred" class="stat-card bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-yellow-500 text-center col-span-3 sm:col-span-1">
+        <p class="text-gray-600 text-xs sm:text-sm mb-0.5 sm:mb-1">Stars</p>
+        <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-500" id="stat-starred-count">0</p>
+      </button> -->
+    </div>
+
+    <!-- Study Interface -->
+    <div class="bg-white rounded-lg shadow p-3 sm:p-4 lg:p-6 mb-4" id="flashcard-section">
+      <!-- Study Mode Selector -->
+      <div class="mb-3 sm:mb-4 text-center hide-in-fullscreen" id="mode-selector-section">
+        <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden w-full sm:w-auto">
+          <button 
+            onclick="switchStudyMode('flashcard')" 
+            id="mode-flashcard-btn"
+            class="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 bg-white text-gray-700 text-sm sm:text-base font-medium transition hover:bg-gray-50"
+          >
+            <i class="fas fa-layer-group"></i> <span class="hidden xs:inline">Flashcard</span><span class="xs:hidden">Flash</span>
+          </button>
+          <button 
+            onclick="switchStudyMode('multichoice')" 
+            id="mode-multichoice-btn"
+            class="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 bg-blue-600 text-white text-sm sm:text-base font-medium transition"
+          >
+            <i class="fas fa-list-ul"></i> <span class="hidden xs:inline">Multi-Choice</span><span class="xs:inline">Multi</span>
+          </button>
+        </div>
+        <p class="text-xs sm:text-sm text-gray-500 mt-2" id="mode-hint">
+          <i class="fas fa-info-circle"></i> <span id="mode-hint-text">Multi-choice mode active</span>
+        </p>
+      </div>
+
+      <!-- Filter Info -->
+      <div class="mb-3 sm:mb-4 text-center hide-in-fullscreen" id="filter-info-section">
+        <span id="filter-info" class="text-xs sm:text-sm bg-blue-100 text-blue-800 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full inline-block">
+          <i class="fas fa-filter text-xs sm:text-sm"></i> <span class="hidden xs:inline">Showing:</span> All Cards
+        </span>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="mb-4 sm:mb-6" id="progress-section">
+        <div class="flex justify-between items-center text-xs sm:text-sm text-gray-600 mb-2">
+          <div class="flex items-center gap-2">
+            <span>Progress</span>
+            <% if (studyType === 'long_term') { %>
+              <button 
+                onclick="toggleRandomMode()" 
+                id="random-toggle-btn"
+                class="w-8 h-8 rounded-lg flex items-center justify-center transition hover:bg-gray-200"
+                title="Toggle Random Order"
+              >
+                <i class="fas fa-random"></i>
+              </button>
+            <% } %>
+          </div>
+          <div class="flex items-center gap-3">
+            <span><span id="current-card">1</span> / <span id="total-filtered"><%= flashcards.length %></span></span>
+            <!-- Exit Focus Button (hidden by default, shown in focus mode) -->
+            <button 
+              onclick="toggleFocusMode()" 
+              id="exit-focus-btn"
+              class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition text-xs font-semibold hidden flex items-center gap-1.5"
+              style="display: none;"
+            >
+              <i class="fas fa-times"></i>
+              <span>Exit</span>
+            </button>
+          </div>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+          <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all" style="width: <%= (1/flashcards.length)*100 %>%"></div>
+        </div>
+      </div>
+
+      <!-- Flashcard -->
+      <div id="flashcard-container" class="mb-2 sm:mb-3 relative">
+        <!-- Star button - INSIDE flashcard container for proper positioning -->
+        <button 
+          onclick="toggleStar()" 
+          id="star-btn-top"
+          class="star-btn-corner unstarred"
+          title="Toggle Star"
+        >
+          <i class="fas fa-star"></i>
+        </button>
+        
+        <div class="flashcard">
+          <div class="flashcard-inner">
+            <div class="flashcard-front bg-blue-50 border-2 border-blue-200 rounded-lg">
+              <div class="text-center w-full pt-4 sm:pt-6 lg:pt-8 h-full flex flex-col">
+                <p id="flip-hint-front" class="text-xs sm:text-sm text-gray-500 mb-1 flex-shrink-0">
+                  <i class="fas fa-sync-alt"></i> Click to flip
+                </p>
+                <div id="word-content" class="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-800 overflow-y-auto flex-1 py-2 sm:py-3 lg:py-4 px-2 sm:px-4">
+                  Loading...
+                </div>
+              </div>
+            </div>
+            
+            <div class="flashcard-back bg-green-50 border-2 border-green-200 rounded-lg">
+              <div class="text-center w-full pt-4 sm:pt-6 lg:pt-8 h-full flex flex-col">
+                <p id="flip-hint-back" class="text-xs sm:text-sm text-gray-500 mb-1 flex-shrink-0">
+                  <i class="fas fa-sync-alt"></i> Click to flip
+                </p>
+                <div id="definition-content" class="text-base sm:text-lg lg:text-xl text-gray-800 overflow-y-auto flex-1 px-2 sm:px-4">
+                  Loading...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEARN Button - Center positioned with gradient -->
+      <div class="flex justify-center items-center mt-3 sm:mt-4" id="quick-actions">
+        <button 
+          onclick="toggleFocusMode()" 
+          id="focus-btn"
+          class="text-white px-8 sm:px-10 lg:px-12 py-3 sm:py-3.5 lg:py-4 rounded-lg sm:rounded-xl transition font-bold text-base sm:text-lg lg:text-xl flex items-center justify-center gap-2 sm:gap-3 shadow-xl hover:shadow-2xl transform hover:scale-105 w-full sm:w-auto"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); max-width: 400px;"
+        >
+          <i class="fas fa-graduation-cap text-lg sm:text-xl lg:text-2xl"></i>
+          <span>LEARN</span>
+        </button>
+      </div>
+
+      <!-- Note Button -->
+      <div class="mb-3 sm:mb-4 text-center hide-in-fullscreen" id="note-section">
+        <button 
+          onclick="showNoteDialog()" 
+          id="note-btn"
+          class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 sm:px-4 py-2 rounded-lg transition flex items-center gap-2 mx-auto text-sm sm:text-base"
+          style="display: none;"
+        >
+          <i class="fas fa-sticky-note"></i>
+          <span>View Note</span>
+        </button>
+      </div>
+
+      <!-- Answer Buttons (for Flashcard mode in long_term study) -->
+      <div id="answer-buttons-section">
+        <% if (studyType === 'long_term') { %>
+          <!-- Flashcard Mode: 4 buttons in a row (Prev | Incorrect | Correct | Next) -->
+          <div id="flashcard-buttons-wrapper" class="flex justify-center items-center gap-1.5 sm:gap-2 lg:gap-4">
+            <button 
+              onclick="previousCard()" 
+              id="flashcard-prev-btn"
+              class="bg-gray-500 text-white py-2 sm:py-2.5 lg:py-3 px-2 sm:px-4 lg:px-6 rounded-md sm:rounded-lg hover:bg-gray-600 transition font-semibold flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm lg:text-base flex-1 sm:flex-initial min-w-0"
+            >
+              <i class="fas fa-arrow-left text-xs sm:text-sm"></i>
+              <span class="hidden xs:inline truncate">Prev</span>
+            </button>
+            <button 
+              onclick="submitAnswer(false)" 
+              class="bg-red-500 text-white py-2 sm:py-2.5 lg:py-3 px-2 sm:px-4 lg:px-6 rounded-md sm:rounded-lg hover:bg-red-600 transition font-semibold flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm lg:text-base flex-1 min-w-0"
+              id="incorrect-btn"
+            >
+              <i class="fas fa-times-circle text-xs sm:text-sm"></i>
+              <span class="truncate">Incorrect</span>
+            </button>
+            <button 
+              onclick="submitAnswer(true)" 
+              class="bg-green-500 text-white py-2 sm:py-2.5 lg:py-3 px-2 sm:px-4 lg:px-6 rounded-md sm:rounded-lg hover:bg-green-600 transition font-semibold flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm lg:text-base flex-1 min-w-0"
+              id="correct-btn"
+            >
+              <i class="fas fa-check-circle text-xs sm:text-sm"></i>
+              <span class="truncate">Correct</span>
+            </button>
+            <button 
+              onclick="nextCard()" 
+              id="flashcard-next-btn"
+              class="bg-blue-500 text-white py-2 sm:py-2.5 lg:py-3 px-2 sm:px-4 lg:px-6 rounded-md sm:rounded-lg hover:bg-blue-600 transition font-semibold flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm lg:text-base flex-1 sm:flex-initial min-w-0"
+            >
+              <i class="fas fa-arrow-right text-xs sm:text-sm"></i>
+              <span class="hidden xs:inline truncate">Next</span>
+            </button>
+          </div>
+        <% } else { %>
+          <div class="flex space-x-2 sm:space-x-4">
+            <button 
+              onclick="nextCard()" 
+              class="flex-1 bg-blue-500 text-white py-2.5 sm:py-3 rounded-lg hover:bg-blue-600 transition font-semibold flex items-center justify-center gap-2 text-sm sm:text-base"
+            >
+              <i class="fas fa-arrow-right"></i>
+              <span>Next Card</span>
+            </button>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Navigation Buttons (for multi-choice mode) -->
+      <div id="navigation-buttons" class="flex flex-wrap justify-center items-center gap-2 sm:gap-3 lg:gap-4 mt-3 sm:mt-4" style="display: none;">
+        <button 
+          onclick="previousCard()" 
+          id="prev-btn"
+          class="bg-gray-500 text-white py-2 sm:py-2.5 lg:py-3 px-4 sm:px-5 lg:px-6 rounded-md sm:rounded-lg hover:bg-gray-600 transition font-semibold flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm lg:text-base"
+        >
+          <i class="fas fa-arrow-left"></i>
+          <span>Previous</span>
+        </button>
+        <button 
+          onclick="checkMultiChoiceAnswer()" 
+          id="mc-check-answer-btn"
+          class="bg-blue-600 text-white py-2 sm:py-2.5 lg:py-3 px-4 sm:px-5 lg:px-6 rounded-md sm:rounded-lg hover:bg-blue-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm lg:text-base"
+          disabled
+          style="display: none;"
+        >
+          <i class="fas fa-check-circle"></i>
+          <span class="hidden xs:inline">Check</span> Answer
+        </button>
+        <button 
+          onclick="nextCard()" 
+          id="next-btn"
+          class="bg-blue-500 text-white py-2 sm:py-2.5 lg:py-3 px-4 sm:px-5 lg:px-6 rounded-md sm:rounded-lg hover:bg-blue-600 transition font-semibold flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm lg:text-base"
+        >
+          <i class="fas fa-arrow-right"></i>
+          <span>Next</span>
+        </button>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<!-- Note Dialog Modal -->
+<div id="noteDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;" onclick="closeNoteDialog()">
+  <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6" onclick="event.stopPropagation()">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-bold text-gray-800">
+        <i class="fas fa-sticky-note text-yellow-500"></i> Your Note
+      </h3>
+      <button onclick="closeNoteDialog()" class="text-gray-400 hover:text-gray-600">
+        <i class="fas fa-times text-2xl"></i>
+      </button>
+    </div>
+    <div id="dialog-note-content" class="prose prose-sm max-w-none text-gray-700 bg-yellow-50 p-4 rounded border border-yellow-200">
+      <!-- Note content will be inserted here -->
+    </div>
+  </div>
+</div>
+
+<script>
+  const flashcards = <%- JSON.stringify(flashcards || []) %>;
+  // For long-term study, use allFlashcards for stats (includes non-due cards)
+  <% if (typeof allFlashcards !== 'undefined' && allFlashcards) { %>
+    const allFlashcardsForStats = <%- JSON.stringify(allFlashcards) %>;
+  <% } else { %>
+    const allFlashcardsForStats = flashcards;
+  <% } %>
+  const studyType = '<%= studyType %>';
+  const entityType = '<%= entityType %>';
+  const entityId = '<%= entityId %>';
+  let currentIndex = 0;
+  let isFlipped = false;
+  let currentNote = null;
+  let currentFilter = 'all';
+  let filteredFlashcards = [...flashcards];
+  let isFocusMode = false;
+  let selectedAnswer = null;
+  let isRandomMode = false; // Random mode off by default
+  
+  // LocalStorage keys
+  const storageKey = `study_filter_${entityType}_${entityId}`;
+  const modeStorageKey = `study_mode_${entityType}_${entityId}`;
+  const randomModeKey = `random_mode_${entityType}_${entityId}`;
+  
+  // Load study mode from localStorage (default: multichoice)
+  let studyMode = localStorage.getItem(modeStorageKey) || 'multichoice';
+  let selectedAnswers = []; // Array to store multiple selected answers
+  
+  // Load random mode from localStorage (default: false)
+  if (studyType === 'long_term') {
+    isRandomMode = localStorage.getItem(randomModeKey) === 'true';
+    updateRandomButtonUI();
+  }
+
+  // Go back to set/folder
+  function goBackToSet() {
+    if (entityType === 'set') {
+      window.location.href = `/sets/${entityId}`;
+    } else if (entityType === 'folder') {
+      window.location.href = `/folders/${entityId}`;
+    }
+  }
+
+  // Toggle random mode
+  function toggleRandomMode() {
+    isRandomMode = !isRandomMode;
+    
+    // Save to localStorage
+    localStorage.setItem(randomModeKey, isRandomMode);
+    
+    // Update UI
+    updateRandomButtonUI();
+    
+    // Re-shuffle current filtered flashcards if random is on
+    if (isRandomMode) {
+      shuffleArray(filteredFlashcards);
+      // Reset to first card
+      currentIndex = 0;
+      loadCard(0);
+    } else {
+      // Restore original order
+      filterCards(currentFilter);
+    }
+  }
+  
+  // Update random button UI to show state
+  function updateRandomButtonUI() {
+    const btn = document.getElementById('random-toggle-btn');
+    if (!btn) return;
+    
+    const icon = btn.querySelector('i');
+    if (isRandomMode) {
+      // Random is ON - show blue active state
+      btn.classList.add('bg-blue-100');
+      btn.classList.remove('hover:bg-gray-200');
+      btn.classList.add('hover:bg-blue-200');
+      btn.title = 'Random Order: ON (Click to turn off)';
+      icon.classList.remove('text-gray-400');
+      icon.classList.add('text-blue-600');
+    } else {
+      // Random is OFF - show gray inactive state
+      btn.classList.remove('bg-blue-100');
+      btn.classList.add('hover:bg-gray-200');
+      btn.classList.remove('hover:bg-blue-200');
+      btn.title = 'Random Order: OFF (Click to turn on)';
+      icon.classList.add('text-gray-400');
+      icon.classList.remove('text-blue-600');
+    }
+  }
+  
+  // Helper function to shuffle array
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  // Detect if flashcard is multi-choice
+  function isMultiChoiceCard(card) {
+    // Multi-choice if definition starts with "Correct: " and word has options (A. B. C. D.)
+    const hasCorrectFormat = card.definition && card.definition.match(/^Correct:\s*[A-Z]/i);
+    const hasOptionsFormat = card.word && card.word.match(/[A-Z]\.\s+/);
+    
+    return hasCorrectFormat && hasOptionsFormat;
+  }
+
+  // Count multi-choice cards
+  function countMultiChoiceCards() {
+    return flashcards.filter(card => isMultiChoiceCard(card)).length;
+  }
+
+  // Switch study mode
+  function switchStudyMode(mode) {
+    studyMode = mode;
+    
+    // Save to localStorage
+    localStorage.setItem(modeStorageKey, mode);
+    
+    // Update button styles
+    updateModeButtons();
+    
+    // Reset and re-render current card
+    isFlipped = false;
+    selectedAnswer = null;
+    loadCard(currentIndex);
+  }
+  
+  // Update mode button styles
+  function updateModeButtons() {
+    const flashcardBtn = document.getElementById('mode-flashcard-btn');
+    const multichoiceBtn = document.getElementById('mode-multichoice-btn');
+    
+    if (studyMode === 'flashcard') {
+      flashcardBtn.classList.add('bg-blue-600', 'text-white');
+      flashcardBtn.classList.remove('bg-white', 'text-gray-700');
+      multichoiceBtn.classList.add('bg-white', 'text-gray-700');
+      multichoiceBtn.classList.remove('bg-blue-600', 'text-white');
+      document.getElementById('mode-hint-text').textContent = 'Flashcard mode for all cards';
+    } else {
+      multichoiceBtn.classList.add('bg-blue-600', 'text-white');
+      multichoiceBtn.classList.remove('bg-white', 'text-gray-700');
+      flashcardBtn.classList.add('bg-white', 'text-gray-700');
+      flashcardBtn.classList.remove('bg-blue-600', 'text-white');
+      const multiCount = countMultiChoiceCards();
+      document.getElementById('mode-hint-text').textContent = 
+        `${multiCount} cards support multi-choice mode`;
+    }
+  }
+
+  // Initialize stats
+  function updateStats() {
+    // Use allFlashcardsForStats for accurate stats (includes all cards, not just due/filtered)
+    const cardsForStats = allFlashcardsForStats;
+    
+    const stats = {
+      total: cardsForStats.length,
+      learned: 0,
+      learning: 0,
+      new: 0,
+      starred: 0
+    };
+
+    cardsForStats.forEach(card => {
+      if (card.is_starred) stats.starred++;
+      
+      if (card.has_progress) {
+        // Learned: Tất cả các từ đã học (có learning_progress record)
+        stats.learned++;
+        
+        // Learning: Các từ đang học nhưng chưa mastered
+        // Mastered = đã đúng 4 lần liên tiếp (consecutive_correct >= 4)
+        if (card.consecutive_correct < 4) {
+          stats.learning++;
+        }
+      } else {
+        // New: Các từ chưa học (chưa có learning_progress record)
+        stats.new++;
+      }
+    });
+
+    document.getElementById('stat-total').textContent = stats.total;
+    document.getElementById('stat-learned-count').textContent = stats.learned;
+    document.getElementById('stat-learning-count').textContent = stats.learning;
+    document.getElementById('stat-new-count').textContent = stats.new;
+    document.getElementById('stat-starred-count').textContent = stats.starred;
+  }
+
+  // Filter cards
+  function filterCards(filterType) {
+    currentFilter = filterType;
+    
+    // Save filter to localStorage
+    localStorage.setItem(storageKey, filterType);
+    
+    // Update active state on stats cards
+    document.querySelectorAll('.stat-card').forEach(card => {
+      card.classList.remove('border-blue-500', 'border-green-500', 'border-yellow-500');
+      card.classList.add('border-transparent');
+    });
+
+    // Filter flashcards - GIỮ NGUYÊN THỨ TỰ GỐC (không random)
+    switch(filterType) {
+      case 'all':
+        filteredFlashcards = [...flashcards];
+        document.getElementById('stat-all').classList.remove('border-transparent');
+        document.getElementById('stat-all').classList.add('border-blue-500');
+        updateFilterInfo('all', 'All Cards', 'blue');
+        break;
+      case 'learned':
+        // Learned: Tất cả các từ đã học (có learning_progress)
+        filteredFlashcards = flashcards.filter(card => card.has_progress);
+        document.getElementById('stat-learned').classList.remove('border-transparent');
+        document.getElementById('stat-learned').classList.add('border-green-500');
+        updateFilterInfo('learned', 'Learned Cards', 'green');
+        break;
+      case 'learning':
+        // Learning: Các từ đang học nhưng chưa mastered (consecutive_correct < 4)
+        filteredFlashcards = flashcards.filter(card => card.has_progress && card.consecutive_correct < 4);
+        document.getElementById('stat-learning').classList.remove('border-transparent');
+        document.getElementById('stat-learning').classList.add('border-yellow-500');
+        updateFilterInfo('learning', 'Learning Cards', 'yellow');
+        break;
+      case 'new':
+        // New: Các từ chưa học (chưa có learning_progress)
+        filteredFlashcards = flashcards.filter(card => !card.has_progress);
+        document.getElementById('stat-new').classList.remove('border-transparent');
+        document.getElementById('stat-new').classList.add('border-blue-500');
+        updateFilterInfo('new', 'New Cards', 'blue');
+        break;
+      case 'starred':
+        filteredFlashcards = flashcards.filter(card => card.is_starred);
+        document.getElementById('stat-starred').classList.remove('border-transparent');
+        document.getElementById('stat-starred').classList.add('border-yellow-500');
+        updateFilterInfo('starred', 'Starred Cards', 'yellow');
+        break;
+    }
+
+    // Update total filtered count
+    const totalFilteredEl = document.getElementById('total-filtered');
+    if (totalFilteredEl) {
+      totalFilteredEl.textContent = filteredFlashcards.length;
+    }
+
+    // Check if there are cards to show
+    if (filteredFlashcards.length === 0) {
+      // Auto-switch to a filter with data
+      const availableFilters = [
+        { type: 'all', count: flashcards.length },
+        { type: 'learned', count: flashcards.filter(c => c.has_progress).length },
+        { type: 'learning', count: flashcards.filter(c => c.has_progress && c.consecutive_correct < 4).length },
+        { type: 'new', count: flashcards.filter(c => !c.has_progress).length },
+        { type: 'starred', count: flashcards.filter(c => c.is_starred).length }
+      ];
+      
+      // Find first filter with data, excluding current
+      const nextFilter = availableFilters.find(f => f.count > 0 && f.type !== filterType);
+      
+      if (nextFilter) {
+        console.log(`No cards in ${filterType}, switching to ${nextFilter.type}`);
+        // Recursively call with available filter
+        setTimeout(() => filterCards(nextFilter.type), 100);
+        return; // Important: prevent continuing execution
+      } else {
+        // Truly no cards available
+        showNoCardsMessage(filterType);
+        return;
+      }
+    }
+    
+    // KHÔNG RANDOM khi filter - giữ nguyên thứ tự gốc
+    // Random chỉ áp dụng khi khởi tạo ở chế độ random study
+    
+    // Only execute if we have cards
+    currentIndex = 0;
+    loadCard(0);
+  }
+  
+  // Helper function to update filter info safely
+  function updateFilterInfo(filterType, label, color) {
+    const filterInfoEl = document.getElementById('filter-info');
+    if (filterInfoEl) {
+      filterInfoEl.innerHTML = `<i class="fas fa-filter"></i> Showing: ${label}`;
+      filterInfoEl.className = `text-sm bg-${color}-100 text-${color}-800 px-4 py-2 rounded-full`;
+    }
+  }
+  
+  // Fullscreen toggle
+  function toggleFocusMode() {
+    isFocusMode = !isFocusMode;
+    const container = document.getElementById('study-container');
+    const btn = document.getElementById('focus-btn');
+    const header = document.getElementById('header-section');
+    const stats = document.getElementById('stats-section');
+    const modeSelector = document.getElementById('mode-selector-section');
+    const filterInfo = document.getElementById('filter-info-section');
+    const cardInfo = document.querySelector('.bg-gray-50.p-4');
+    const flashcardContainer = document.getElementById('flashcard-container');
+    
+    if (isFocusMode) {
+      // Enter Focus Mode - maximize content, minimize chrome
+      document.body.classList.add('focus-mode-active');
+      
+      // Hide header (title, back button) and other UI
+      if (header) header.style.display = 'none';
+      if (stats) stats.style.display = 'none';
+      if (modeSelector) modeSelector.style.display = 'none';
+      if (filterInfo) filterInfo.style.display = 'none';
+      if (cardInfo) cardInfo.style.display = 'none';
+      
+      // Note: Progress bar, answer buttons, star/focus buttons remain visible
+      
+      // Maximize flashcard container
+      container.classList.add('focus-mode-container');
+      
+      // Update button to Exit - ALWAYS VISIBLE
+      btn.innerHTML = '<i class="fas fa-times"></i> EXIT';
+      btn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+      btn.classList.add('bg-red-500', 'hover:bg-red-600', 'font-bold');
+      btn.style.position = 'fixed';
+      btn.style.top = '0.5rem';
+      btn.style.right = '0.5rem';
+      btn.style.zIndex = '9999';
+      btn.style.display = 'flex';
+      
+      // Show temporary hint
+      const hint = document.createElement('div');
+      hint.id = 'focus-hint';
+      hint.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white px-6 py-3 rounded-lg text-sm z-40 shadow-lg font-semibold';
+      
+      // Different hint for mobile vs desktop
+      if (window.innerWidth < 768) {
+        hint.innerHTML = '<i class="fas fa-info-circle"></i> LEARN Mode - Press ESC to exit';
+      } else {
+        hint.innerHTML = '<i class="fas fa-graduation-cap"></i> LEARN Mode Active - Press ESC or click EXIT';
+      }
+      
+      document.body.appendChild(hint);
+      
+      setTimeout(() => {
+        const hintEl = document.getElementById('focus-hint');
+        if (hintEl) {
+          hintEl.style.transition = 'opacity 0.5s';
+          hintEl.style.opacity = '0';
+          setTimeout(() => hintEl.remove(), 500);
+        }
+      }, 3000);
+      
+    } else {
+      // Exit Focus Mode
+      document.body.classList.remove('focus-mode-active');
+      
+      // Show all elements
+      if (header) header.style.display = 'block';
+      if (stats) stats.style.display = 'grid';
+      if (modeSelector) modeSelector.style.display = 'block';
+      if (filterInfo) filterInfo.style.display = 'block';
+      if (cardInfo) cardInfo.style.display = 'flex';
+      
+      // Restore container
+      container.classList.remove('focus-mode-container');
+      
+      // Restore button
+      btn.innerHTML = '<i class="fas fa-graduation-cap"></i> <span>LEARN</span>';
+      btn.classList.add('bg-purple-600', 'hover:bg-purple-700');
+      btn.classList.remove('bg-red-500', 'hover:bg-red-600', 'font-bold');
+      btn.style.position = '';
+      btn.style.top = '';
+      btn.style.right = '';
+      btn.style.zIndex = '';
+      
+      // Remove hint
+      const hint = document.getElementById('focus-hint');
+      if (hint) hint.remove();
+    }
+  }
+
+  // Fullscreen function removed - focus mode is the main feature now
+
+  function showNoCardsMessage(filterType) {
+    const filterNames = {
+      'all': 'All',
+      'mastered': 'Mastered',
+      'learning': 'Learning',
+      'new': 'New',
+      'starred': 'Starred'
+    };
+    
+    const container = document.getElementById('flashcard-container').parentElement;
+    container.innerHTML = `
+      <div class="text-center py-12">
+        <i class="fas fa-inbox text-6xl text-gray-400 mb-4"></i>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">No ${filterNames[filterType]} Cards</h2>
+        <p class="text-gray-600 mb-6">Try selecting a different filter.</p>
+        <button onclick="filterCards('all')" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+          <i class="fas fa-filter"></i> Show All Cards
+        </button>
+      </div>
+    `;
+  }
+
+  function loadCard(index) {
+    if (index >= filteredFlashcards.length) {
+      showCompletion();
+      return;
+    }
+
+    const card = filteredFlashcards[index];
+    currentIndex = index;
+    selectedAnswer = null;
+    selectedAnswers = []; // Reset selected answers array for new card
+    
+    // Check if multi-choice mode and card supports it
+    const isMultiChoice = studyMode === 'multichoice' && isMultiChoiceCard(card);
+    
+    // Show/hide buttons based on mode
+    const answerButtonsSection = document.getElementById('answer-buttons-section');
+    const navigationButtons = document.getElementById('navigation-buttons');
+    const mcCheckBtn = document.getElementById('mc-check-answer-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    
+    // Get flashcard mode buttons
+    const flashcardPrevBtn = document.getElementById('flashcard-prev-btn');
+    const flashcardNextBtn = document.getElementById('flashcard-next-btn');
+    const incorrectBtn = document.getElementById('incorrect-btn');
+    const correctBtn = document.getElementById('correct-btn');
+    
+    if (isMultiChoice) {
+      // Multi-choice mode: Hide answer buttons, show navigation with Check Answer
+      answerButtonsSection.style.display = 'none';
+      navigationButtons.style.display = 'flex';
+      if (mcCheckBtn) {
+        mcCheckBtn.style.display = 'block';
+        mcCheckBtn.disabled = true;
+      }
+      if (prevBtn) prevBtn.style.display = 'block';
+      if (nextBtn) nextBtn.style.display = 'block';
+    } else {
+      // Flashcard mode: Show answer buttons (4 buttons layout), hide multi-choice navigation
+      answerButtonsSection.style.display = 'block';
+      navigationButtons.style.display = 'none';
+      if (mcCheckBtn) mcCheckBtn.style.display = 'none';
+      
+      // Ensure all flashcard buttons are visible
+      if (flashcardPrevBtn) flashcardPrevBtn.style.display = 'flex';
+      if (incorrectBtn) incorrectBtn.style.display = 'flex';
+      if (correctBtn) correctBtn.style.display = 'flex';
+      if (flashcardNextBtn) flashcardNextBtn.style.display = 'flex';
+    }
+    
+    // Important: Reset flip state BEFORE updating content
+    const flashcardElement = document.querySelector('.flashcard');
+    flashcardElement.classList.remove('flipped');
+    isFlipped = false;
+
+    // Small delay to ensure DOM is ready
+    setTimeout(() => {
+      // Show/hide flip hints based on mode
+      const flipHintFront = document.getElementById('flip-hint-front');
+      const flipHintBack = document.getElementById('flip-hint-back');
+      
+      if (isMultiChoice) {
+        // Multi-choice: Hide flip hints
+        if (flipHintFront) flipHintFront.style.display = 'none';
+        if (flipHintBack) flipHintBack.style.display = 'none';
+        
+        // Render as multi-choice question
+        renderMultiChoiceCard(card);
+      } else {
+        // Flashcard: Show flip hints
+        if (flipHintFront) flipHintFront.style.display = 'block';
+        if (flipHintBack) flipHintBack.style.display = 'block';
+        
+        // Render as regular flashcard
+        document.getElementById('word-content').innerHTML = formatContent(card.word);
+        document.getElementById('definition-content').innerHTML = formatContent(card.definition);
+      }
+
+      // Update progress
+      document.getElementById('current-card').textContent = index + 1;
+      const progress = ((index + 1) / filteredFlashcards.length) * 100;
+      document.getElementById('progress-bar').style.width = progress + '%';
+
+      // Update star button (use star-btn-top)
+      const starBtn = document.getElementById('star-btn-top');
+      if (starBtn) {
+        if (card.is_starred) {
+          starBtn.className = 'star-btn-corner starred';
+          starBtn.innerHTML = '<i class="fas fa-star"></i>';
+        } else {
+          starBtn.className = 'star-btn-corner unstarred';
+          starBtn.innerHTML = '<i class="fas fa-star"></i>';
+        }
+      }
+
+      // Handle note button
+      currentNote = card.user_note || null;
+      const noteBtn = document.getElementById('note-btn');
+      if (currentNote) {
+        noteBtn.style.display = 'inline-block';
+      } else {
+        noteBtn.style.display = 'none';
+      }
+
+      // Update card info
+      if (card.consecutive_correct !== undefined) {
+        let status = 'New';
+        if (card.has_progress) {
+          if (card.consecutive_correct >= 4) {
+            status = `Mastered ✓ (${card.consecutive_correct} streak)`;
+          } else if (card.consecutive_correct > 0) {
+            status = `Learning (${card.consecutive_correct}/4 to master)`;
+          } else {
+            status = 'Learning (0/4 to master)';
+          }
+        }
+        document.getElementById('card-info').textContent = status;
+      }
+
+      // Update navigation buttons visibility
+      updateNavigationButtons();
+    }, 50);
+  }
+
+  function renderMultiChoiceCard(card) {
+    // Parse question and options from word (not term!)
+    let wordContent = card.word;
+    
+    // Split by YYY to separate question+options from note
+    if (wordContent.includes('YYY')) {
+      wordContent = wordContent.split('YYY')[0]; // Get only question+options part
+    }
+    
+    const lines = wordContent.split('\n');
+    const question = lines[0];
+    const options = [];
+    
+    // Extract options (A. B. C. D.)
+    lines.forEach(line => {
+      const match = line.match(/^([A-Z])\.\s+(.+)/);
+      if (match) {
+        options.push({ letter: match[1], text: match[2] });
+      }
+    });
+    
+    // Extract correct answer from definition (Correct: A or Correct: A, C)
+    const correctMatch = card.definition.match(/Correct:\s*([A-Z,\s]+)/i);
+    const correctAnswers = correctMatch ? correctMatch[1].split(',').map(a => a.trim()) : [];
+    
+    // Determine if this is multi-choice (more than 1 correct answer) or single-choice
+    const isMultiSelect = correctAnswers.length > 1;
+    
+    // Build HTML - Different display for single vs multi select
+    const instructionText = isMultiSelect ? 
+      `<i class="fas fa-check-square"></i> Choose ALL correct answers (${correctAnswers.length} answers)` : 
+      'Choose one answer';
+    
+    let html = `<div class="mc-container">
+      <div class="mc-header">
+        <span class="mc-label">Term</span>
+      </div>
+      <p class="mc-question">${question}</p>
+      <div class="mc-instruction">${instructionText}</div>
+      <div class="mc-options">`;
+    
+    options.forEach((opt, index) => {
+      // Use checkbox icon for multi-select, letter for single-select
+      const indicator = isMultiSelect ? 
+        `<div class="mc-checkbox"><i class="far fa-square"></i></div>` : 
+        `<div class="mc-number">${opt.letter}</div>`;
+      
+      html += `
+        <div class="mc-option" data-answer="${opt.letter}" data-multi="${isMultiSelect}">
+          ${indicator}
+          <div class="mc-text">${opt.text}</div>
+        </div>`;
+    });
+    
+    html += `
+      </div>
+    </div>`;
+    
+    document.getElementById('word-content').innerHTML = html;
+    
+    // Reset Check Answer button
+    const checkAnswerBtn = document.getElementById('mc-check-answer-btn');
+    if (checkAnswerBtn) {
+      checkAnswerBtn.disabled = true;
+      checkAnswerBtn.style.display = 'block';
+      checkAnswerBtn.classList.remove('bg-green-500', 'bg-red-500');
+      checkAnswerBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+      checkAnswerBtn.innerHTML = '<i class="fas fa-check-circle"></i> Check Answer';
+    }
+    
+    // Show correct answer on back (for flip mode)
+    document.getElementById('definition-content').innerHTML = 
+      `<div class="text-left"><p class="text-lg mb-2">Correct Answer:</p><p class="text-2xl font-bold text-green-600">${correctAnswers.join(', ')}</p></div>`;
+    
+    // Add event listeners to options
+    document.querySelectorAll('.mc-option').forEach(option => {
+      option.addEventListener('click', function() {
+        const answer = this.dataset.answer;
+        const isMulti = this.dataset.multi === 'true';
+        
+        if (isMulti) {
+          // Multi-select: Toggle selection
+          if (this.classList.contains('selected')) {
+            // Deselect
+            this.classList.remove('selected');
+            const checkbox = this.querySelector('.mc-checkbox i');
+            checkbox.className = 'far fa-square';
+            selectedAnswers = selectedAnswers.filter(a => a !== answer);
+          } else {
+            // Select
+            this.classList.add('selected');
+            const checkbox = this.querySelector('.mc-checkbox i');
+            checkbox.className = 'fas fa-check-square';
+            selectedAnswers.push(answer);
+          }
+        } else {
+          // Single-select: Clear all and select this one
+          document.querySelectorAll('.mc-option').forEach(opt => {
+            opt.classList.remove('selected');
+          });
+          this.classList.add('selected');
+          selectedAnswers = [answer];
+        }
+        
+        // Enable check button if at least one answer is selected
+        const mcCheckBtn = document.getElementById('mc-check-answer-btn');
+        if (mcCheckBtn) {
+          mcCheckBtn.disabled = selectedAnswers.length === 0;
+        }
+      });
+    });
+  }
+  
+  function checkMultiChoiceAnswer() {
+    if (selectedAnswers.length === 0) return;
+    
+    const card = filteredFlashcards[currentIndex];
+    const correctMatch = card.definition.match(/Correct:\s*([A-Z,\s]+)/i);
+    const correctAnswers = correctMatch ? correctMatch[1].split(',').map(a => a.trim()) : [];
+    
+    // Sort both arrays to compare
+    const sortedSelected = [...selectedAnswers].sort();
+    const sortedCorrect = [...correctAnswers].sort();
+    
+    // Check if arrays are equal (all correct answers selected, no wrong answers)
+    const isCorrect = sortedSelected.length === sortedCorrect.length && 
+                      sortedSelected.every((val, index) => val === sortedCorrect[index]);
+    
+    // Disable all options (prevent changing answer)
+    document.querySelectorAll('.mc-option').forEach(option => {
+      option.style.pointerEvents = 'none';
+    });
+    
+    // Highlight answers with checkmark/cross
+    document.querySelectorAll('.mc-option').forEach(option => {
+      const letter = option.dataset.answer;
+      const isMulti = option.dataset.multi === 'true';
+      const indicatorEl = isMulti ? option.querySelector('.mc-checkbox i') : option.querySelector('.mc-number');
+      const isSelected = selectedAnswers.includes(letter);
+      const isCorrectAnswer = correctAnswers.includes(letter);
+      
+      if (isCorrectAnswer) {
+        // Correct answer - show green checkmark
+        option.classList.add('correct');
+        if (isMulti) {
+          indicatorEl.className = 'fas fa-check-circle';
+        } else {
+          indicatorEl.innerHTML = '<i class="fas fa-check"></i>';
+        }
+      } else if (isSelected && !isCorrectAnswer) {
+        // Wrong answer that user selected - show red X
+        option.classList.add('incorrect');
+        if (isMulti) {
+          indicatorEl.className = 'fas fa-times-circle';
+        } else {
+          indicatorEl.innerHTML = '<i class="fas fa-times"></i>';
+        }
+      }
+      
+      // Remove selected state after checking
+      option.classList.remove('selected');
+    });
+    
+    // Update check button to show result (keep visible, just disable)
+    const mcCheckBtn = document.getElementById('mc-check-answer-btn');
+    if (mcCheckBtn) {
+      mcCheckBtn.disabled = true;
+      mcCheckBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+      mcCheckBtn.classList.add(isCorrect ? 'bg-green-500' : 'bg-red-500');
+      mcCheckBtn.innerHTML = isCorrect ? 
+        '<i class="fas fa-check-circle"></i> Correct!' : 
+        '<i class="fas fa-times-circle"></i> Incorrect';
+      // Keep button visible (disabled), don't hide it
+    }
+    
+    // Submit answer to server if long-term study
+    if (studyType === 'long_term') {
+      submitAnswerToServer(isCorrect);
+    }
+  }
+
+  function formatContent(content) {
+    // Handle YYY separator for notes
+    if (content.includes('YYY')) {
+      const parts = content.split('YYY');
+      return '<div class="text-left">' + 
+             parts[0].replace(/\n/g, '<br>').replace(/^([A-D]\.)/gm, '<strong>$1</strong>') + 
+             '</div>';
+    }
+    
+    // Basic formatting for multiple choice questions
+    if (content.includes('\nA.') || content.includes('\nB.')) {
+      return '<div class="text-left">' + 
+             content.replace(/\n/g, '<br>').replace(/^([A-D]\.)/gm, '<strong>$1</strong>') + 
+             '</div>';
+    }
+    return content.replace(/\n/g, '<br>');
+  }
+
+  function flipCard() {
+    // Don't flip if in multi-choice mode
+    if (studyMode === 'multichoice') {
+      return;
+    }
+    
+    const flashcard = document.querySelector('.flashcard');
+    if (flashcard) {
+      flashcard.classList.toggle('flipped');
+      isFlipped = !isFlipped;
+    }
+  }
+  
+  // Add click event to flashcard
+  document.addEventListener('DOMContentLoaded', function() {
+    const flashcard = document.querySelector('.flashcard');
+    if (flashcard) {
+      flashcard.addEventListener('click', flipCard);
+    }
+  });
+
+  function showNoteDialog() {
+    if (currentNote) {
+      document.getElementById('dialog-note-content').innerHTML = formatContent(currentNote);
+      document.getElementById('noteDialog').style.display = 'flex';
+      // Prevent body scroll
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeNoteDialog() {
+    document.getElementById('noteDialog').style.display = 'none';
+    // Restore body scroll
+    document.body.style.overflow = 'auto';
+  }
+
+  function nextCard() {
+    loadCard(currentIndex + 1);
+  }
+
+  function submitAnswer(isCorrect) {
+    // Visual feedback: Flash the button
+    const btnId = isCorrect ? 'correct-btn' : 'incorrect-btn';
+    const btn = document.getElementById(btnId);
+    
+    if (btn) {
+      // Add flash effect
+      btn.style.transform = 'scale(0.95)';
+      btn.style.opacity = '0.7';
+      
+      setTimeout(() => {
+        btn.style.transform = 'scale(1)';
+        btn.style.opacity = '1';
+      }, 150);
+    }
+    
+    // Submit to server
+    submitAnswerToServer(isCorrect);
+    
+    // Automatically move to next card after brief delay
+    setTimeout(() => {
+      nextCard();
+    }, 400); // Delay for visual feedback
+  }
+
+  function submitAnswerToServer(isCorrect) {
+    const card = filteredFlashcards[currentIndex];
+
+    // Send answer to server
+    fetch('/study/answer', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        flashcard_id: card.id,
+        is_correct: isCorrect
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Update local card data
+      const originalCard = flashcards.find(c => c.id === card.id);
+      if (originalCard) {
+        // Đánh dấu là đã học (có learning_progress)
+        originalCard.has_progress = true;
+        
+        if (isCorrect) {
+          originalCard.consecutive_correct = (originalCard.consecutive_correct || 0) + 1;
+        } else {
+          originalCard.consecutive_correct = 0;
+        }
+      }
+      
+      // Update stats
+      updateStats();
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  }
+
+  function previousCard() {
+    if (currentIndex > 0) {
+      loadCard(currentIndex - 1);
+    }
+  }
+
+  function updateNavigationButtons() {
+    // For multi-choice mode (separate navigation buttons)
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    
+    // For flashcard mode (integrated navigation buttons)
+    const flashcardPrevBtn = document.getElementById('flashcard-prev-btn');
+    const flashcardNextBtn = document.getElementById('flashcard-next-btn');
+    
+    const isFirst = currentIndex === 0;
+    const isLast = currentIndex >= filteredFlashcards.length - 1;
+    
+    // Multi-choice navigation buttons
+    if (prevBtn) {
+      prevBtn.style.display = isFirst ? 'none' : 'block';
+    }
+    if (nextBtn) {
+      nextBtn.style.display = isLast ? 'none' : 'block';
+    }
+    
+    // Flashcard navigation buttons
+    if (flashcardPrevBtn) {
+      flashcardPrevBtn.style.display = isFirst ? 'none' : 'flex';
+    }
+    if (flashcardNextBtn) {
+      flashcardNextBtn.style.display = isLast ? 'none' : 'flex';
+    }
+  }
+
+  function toggleStar() {
+    const card = filteredFlashcards[currentIndex];
+    const currentCardId = card.id; // Lưu lại ID của card hiện tại
+    
+    // Visual feedback: Animate star button
+    const starBtn = document.getElementById('star-btn-top');
+    if (starBtn) {
+      starBtn.style.transform = 'scale(1.2)';
+      setTimeout(() => {
+        starBtn.style.transform = 'scale(1)';
+      }, 200);
+    }
+
+    fetch(`/flashcards/${card.id}/toggle-star`, {
+      method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Toggle star state in both arrays (convert to number for consistency)
+      const newStarState = card.is_starred ? 0 : 1;
+      
+      const originalCard = flashcards.find(c => c.id === card.id);
+      if (originalCard) {
+        originalCard.is_starred = newStarState;
+      }
+      card.is_starred = newStarState;
+      
+      // Update all cards in filteredFlashcards that match this ID
+      filteredFlashcards.forEach(c => {
+        if (c.id === card.id) {
+          c.is_starred = newStarState;
+        }
+      });
+      
+      // Update button UI immediately
+      const starBtn = document.getElementById('star-btn-top');
+      if (starBtn) {
+        if (newStarState) {
+          starBtn.className = 'star-btn-corner starred';
+          starBtn.innerHTML = '<i class="fas fa-star"></i>';
+        } else {
+          starBtn.className = 'star-btn-corner unstarred';
+          starBtn.innerHTML = '<i class="fas fa-star"></i>';
+        }
+      }
+      
+      // Update stats để hiển thị số liệu mới
+      updateStats();
+      
+      // Nếu đang filter by starred, cần re-filter để cập nhật danh sách
+      if (currentFilter === 'starred') {
+        // Re-filter starred cards
+        filteredFlashcards = flashcards.filter(c => c.is_starred);
+        
+        // Update total filtered count
+        const totalFilteredEl = document.getElementById('total-filtered');
+        if (totalFilteredEl) {
+          totalFilteredEl.textContent = filteredFlashcards.length;
+        }
+        
+        // Nếu card hiện tại bị unstar và đang ở starred filter
+        if (!card.is_starred) {
+          // Card bị remove khỏi filter
+          if (filteredFlashcards.length === 0) {
+            // Không còn starred card nào, chuyển sang filter khác
+            filterCards('all');
+          } else {
+            // Vẫn còn starred cards, load card tiếp theo hoặc card trước
+            if (currentIndex >= filteredFlashcards.length) {
+              currentIndex = filteredFlashcards.length - 1;
+            }
+            loadCard(currentIndex);
+          }
+        }
+        // Nếu card được star thì không cần làm gì (vẫn ở trong filter)
+      }
+      // Với các filter khác, card vẫn nằm trong filter nên không cần re-filter
+    })
+    .catch(error => console.error('Error:', error));
+  }
+
+  function showCompletion() {
+    const container = document.getElementById('flashcard-container').parentElement;
+    container.innerHTML = `
+      <div class="text-center py-12">
+        <i class="fas fa-trophy text-6xl text-yellow-500 mb-4"></i>
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">Great job!</h2>
+        <p class="text-gray-600 mb-6">You've completed this study session.</p>
+        <div class="space-x-4">
+          <a href="/dashboard" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+            <i class="fas fa-home"></i> Dashboard
+          </a>
+          <button onclick="location.reload()" class="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
+            <i class="fas fa-redo"></i> Study Again
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch(e.key) {
+      case ' ':
+        e.preventDefault();
+        flipCard();
+        break;
+      case 'ArrowLeft':
+        if (studyType === 'long_term' && isFlipped) {
+          submitAnswer(false);
+        }
+        break;
+      case 'ArrowRight':
+        if (studyType === 'long_term' && isFlipped) {
+          submitAnswer(true);
+        } else if (studyType !== 'long_term') {
+          nextCard();
+        }
+        break;
+    }
+  });
+
+  // Initialize on page load
+  if (flashcards.length > 0) {
+    updateStats();
+    
+    // Initialize mode buttons based on saved preference
+    updateModeButtons();
+    
+    // Restore filter from localStorage
+    const savedFilter = localStorage.getItem(storageKey);
+    if (savedFilter && ['all', 'mastered', 'learning', 'new', 'starred'].includes(savedFilter)) {
+      filterCards(savedFilter);
+    } else {
+      loadCard(0);
+    }
+  }
+  
+  // Keyboard shortcuts: F for Focus Mode, ESC to exit
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    
+    // L key to toggle LEARN Mode (was F for Focus)
+    if (e.key === 'l' || e.key === 'L') {
+      toggleFocusMode();
+    }
+    
+    // ESC to exit LEARN Mode
+    if (e.key === 'Escape' && isFocusMode) {
+      toggleFocusMode();
+    }
+  });
+</script>
+
+<style>
+  /* Custom breakpoint for extra small screens (xs) */
+  @media (min-width: 475px) {
+    .xs\:inline {
+      display: inline !important;
+    }
+    .xs\:hidden {
+      display: none !important;
+    }
+  }
+  
+  /* Below 475px (mobile) */
+  @media (max-width: 474px) {
+    .xs\:inline {
+      display: none !important;
+    }
+  }
+  
+  /* Container styling - prevent overflow */
+  #study-container {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Ensure all child elements respect container padding */
+  #study-container > * {
+    box-sizing: border-box;
+  }
+  
+  /* Stats Card Layout - căn giữa text và layout đồng đều */
+  .stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+  }
+  
+  .stat-card p {
+    margin: 0;
+    width: 100%;
+  }
+  
+  /* Flashcard 3D Flip Animation - Mobile First */
+  .flashcard {
+    perspective: 1000px;
+    width: 100%;
+    height: 300px; /* Mobile: 300px */
+    cursor: pointer;
+  }
+  
+  /* Tablet */
+  @media (min-width: 640px) {
+    .flashcard {
+      height: 350px;
+    }
+  }
+  
+  /* Desktop */
+  @media (min-width: 1024px) {
+    .flashcard {
+      height: 450px;
+    }
+  }
+  
+  .flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+  }
+  
+  .flashcard.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+  }
+  
+  .flashcard-front,
+  .flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    padding: 0.75rem; /* Mobile: smaller padding */
+    font-size: 1rem;
+  }
+  
+  /* Tablet */
+  @media (min-width: 640px) {
+    .flashcard-front,
+    .flashcard-back {
+      padding: 1rem;
+      font-size: 1.125rem;
+    }
+  }
+  
+  /* Desktop */
+  @media (min-width: 1024px) {
+    .flashcard-front,
+    .flashcard-back {
+      padding: 1.5rem;
+      font-size: 1.25rem;
+    }
+  }
+  
+  /* Hide overflow when containing multi-choice */
+  .flashcard-front:has(.mc-container),
+  .flashcard-back:has(.mc-container) {
+    overflow: hidden;
+  }
+  
+  .flashcard-front {
+    background-color: #dbeafe;
+  }
+  
+  .flashcard-back {
+    background-color: #d1fae5;
+    transform: rotateY(180deg);
+  }
+
+  /* Multi-line text support - Mobile First */
+  #word-content,
+  #definition-content {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    word-break: break-word;
+    font-size: 0.875rem; /* Mobile: smaller */
+    line-height: 1.5;
+  }
+  
+  @media (min-width: 640px) {
+    #word-content,
+    #definition-content {
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    #word-content,
+    #definition-content {
+      font-size: 1.25rem;
+      line-height: 1.6;
+    }
+  }
+  
+  /* Hide scrollbar for multi-choice content */
+  #word-content:has(.mc-container) {
+    overflow: hidden !important;
+  }
+  
+  #word-content:has(.mc-container)::-webkit-scrollbar {
+    display: none !important;
+  }
+  
+  #word-content:has(.mc-container) {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+  
+  .flashcard:hover .flashcard-front {
+    background-color: #bfdbfe;
+  }
+  
+  .flashcard:hover .flashcard-back {
+    background-color: #a7f3d0;
+  }
+  
+  /* Fullscreen optimizations */
+  #study-container.fullscreen-mode {
+    padding: 0 !important;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  #study-container.fullscreen-mode #flashcard-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: transparent;
+  }
+  
+  #study-container.fullscreen-mode .flashcard {
+    height: 98vh;
+    max-height: 98vh;
+  }
+  
+  #study-container.fullscreen-mode .flashcard-inner {
+    height: 100%;
+  }
+  
+  #study-container.fullscreen-mode .flashcard-front,
+  #study-container.fullscreen-mode .flashcard-back {
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  #study-container.fullscreen-mode #word-content,
+  #study-container.fullscreen-mode #definition-content {
+    font-size: clamp(1.5rem, 5vw, 3rem);
+    padding: 1rem;
+    max-width: 100%;
+    line-height: 1.4;
+    overflow-y: auto;
+    max-height: calc(98vh - 200px);
+  }
+  
+  /* Hide scrollbar for multi-choice in fullscreen */
+  #study-container.fullscreen-mode #word-content:has(.mc-container) {
+    overflow: hidden !important;
+  }
+  
+  /* Multi-Choice Styles - Qi-inspired */
+  .mc-container {
+    text-align: left;
+    width: 100%;
+    padding: 0.75rem;
+    overflow-y: auto;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .mc-header {
+    margin-bottom: 0.75rem;
+    flex-shrink: 0;
+  }
+  
+  .mc-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #6b7280;
+    letter-spacing: 0.05em;
+  }
+  
+  .mc-question {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+    color: #1f2937;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    flex-shrink: 0;
+  }
+  
+  .mc-instruction {
+    font-size: 0.8125rem;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  
+  .mc-options {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+  }
+  
+  /* Tablet styles */
+  @media (min-width: 640px) {
+    .mc-container {
+      padding: 0.875rem;
+    }
+    
+    .mc-header {
+      margin-bottom: 0.875rem;
+    }
+    
+    .mc-label {
+      font-size: 0.8125rem;
+    }
+    
+    .mc-question {
+      font-size: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    
+    .mc-instruction {
+      font-size: 0.8125rem;
+      margin-bottom: 0.875rem;
+    }
+    
+    .mc-options {
+      gap: 0.625rem;
+      margin-bottom: 1.25rem;
+    }
+  }
+  
+  /* Desktop styles */
+  @media (min-width: 1024px) {
+    .mc-container {
+      padding: 1rem;
+    }
+    
+    .mc-header {
+      margin-bottom: 1rem;
+    }
+    
+    .mc-label {
+      font-size: 0.875rem;
+    }
+    
+    .mc-question {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .mc-instruction {
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+    
+    .mc-options {
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+  }
+  
+  .mc-option {
+    display: flex;
+    align-items: center;
+    padding: 0.625rem 0.75rem;
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 3rem;
+  }
+  
+  @media (min-width: 640px) {
+    .mc-option {
+      padding: 0.75rem 1rem;
+      min-height: 3.5rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .mc-option {
+      padding: 1rem 1.25rem;
+      border-radius: 0.75rem;
+      min-height: 4rem;
+    }
+  }
+  
+  .mc-option:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  .mc-option.selected {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+  }
+  
+  .mc-option.correct {
+    border-color: #10b981;
+    background: #d1fae5;
+    cursor: not-allowed;
+  }
+  
+  .mc-option.incorrect {
+    border-color: #ef4444;
+    background: #fee2e2;
+    cursor: not-allowed;
+  }
+  
+  .mc-number {
+    width: 1.75rem;
+    height: 1.75rem;
+    min-width: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+    color: #4b5563;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.8125rem;
+    margin-right: 0.5rem;
+    transition: all 0.2s ease;
+  }
+
+  /* Checkbox style for multi-select */
+  .mc-checkbox {
+    width: 1.75rem;
+    height: 1.75rem;
+    min-width: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4b5563;
+    font-size: 1.125rem;
+    margin-right: 0.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .mc-option.selected .mc-checkbox {
+    color: #3b82f6;
+  }
+
+  .mc-option:hover .mc-checkbox {
+    color: #3b82f6;
+  }
+  
+  @media (min-width: 640px) {
+    .mc-number {
+      width: 2rem;
+      height: 2rem;
+      min-width: 2rem;
+      font-size: 0.875rem;
+      margin-right: 0.75rem;
+    }
+
+    .mc-checkbox {
+      width: 2rem;
+      height: 2rem;
+      min-width: 2rem;
+      font-size: 1.25rem;
+      margin-right: 0.75rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .mc-number {
+      width: 2.5rem;
+      height: 2.5rem;
+      min-width: 2.5rem;
+      font-size: 1.125rem;
+      margin-right: 1rem;
+    }
+
+    .mc-checkbox {
+      width: 2.5rem;
+      height: 2.5rem;
+      min-width: 2.5rem;
+      font-size: 1.5rem;
+      margin-right: 1rem;
+    }
+  }
+  
+  .mc-option:hover .mc-number {
+    background: #3b82f6;
+    color: white;
+  }
+  
+  .mc-option.selected .mc-number {
+    background: #3b82f6;
+    color: white;
+  }
+  
+  .mc-option.correct .mc-number {
+    background: #10b981;
+    color: white;
+    font-size: 1rem;
+  }
+
+  .mc-option.correct .mc-checkbox {
+    color: #10b981;
+  }
+  
+  @media (min-width: 768px) {
+    .mc-option.correct .mc-number,
+    .mc-option.incorrect .mc-number {
+      font-size: 1.25rem;
+    }
+  }
+  
+  .mc-option.incorrect .mc-number {
+    background: #ef4444;
+    color: white;
+    font-size: 1rem;
+  }
+
+  .mc-option.incorrect .mc-checkbox {
+    color: #ef4444;
+  }
+  
+  .mc-text {
+    flex: 1;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: #1f2937;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  @media (min-width: 640px) {
+    .mc-text {
+      font-size: 0.9375rem;
+      line-height: 1.5;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .mc-text {
+      font-size: 1.125rem;
+      line-height: 1.5;
+    }
+  }
+  
+  .mc-btn {
+    width: 100%;
+    background: #3b82f6;
+    color: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+    flex-shrink: 0;
+  }
+  
+  @media (min-width: 768px) {
+    .mc-btn {
+      padding: 0.875rem 1.5rem;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+  }
+  
+  .mc-btn:hover:not(:disabled) {
+    background: #2563eb;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+    transform: translateY(-1px);
+  }
+  
+  .mc-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .mc-btn-secondary {
+    width: 100%;
+    background: transparent;
+    color: #6b7280;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    border: 2px solid #e5e7eb;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  
+  @media (min-width: 768px) {
+    .mc-btn-secondary {
+      padding: 0.875rem 1.5rem;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+    }
+  }
+  
+  .mc-btn-secondary:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+  
+  .mc-btn-correct {
+    width: 100%;
+    background: #10b981;
+    color: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    border: none;
+    cursor: default;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+    flex-shrink: 0;
+  }
+  
+  @media (min-width: 768px) {
+    .mc-btn-correct {
+      padding: 0.875rem 1.5rem;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+  }
+  
+  .mc-btn-incorrect {
+    width: 100%;
+    background: #ef4444;
+    color: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    border: none;
+    cursor: default;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+    flex-shrink: 0;
+  }
+  
+  @media (min-width: 768px) {
+    .mc-btn-incorrect {
+      padding: 0.875rem 1.5rem;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+  }
+
+  /* Navigation buttons styling */
+  #navigation-buttons {
+    justify-content: center;
+  }
+
+  /* Ensure buttons stay in flex layout */
+  #navigation-buttons button {
+    flex-shrink: 0;
+  }
+  
+  /* ===== PC OPTIMIZATION (Desktop/Tablet) ===== */
+  @media (min-width: 768px) {
+    /* Flashcard container on desktop - maximize content area */
+    #flashcard-container {
+      max-width: 900px;
+      margin: 0 auto;
+      min-height: 500px;
+    }
+    
+    .flashcard {
+      min-height: 500px;
+    }
+    
+    .flashcard-front, .flashcard-back {
+      font-size: 2rem !important;
+      padding: 2rem !important;
+      min-height: 500px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    #word-content, #definition-content {
+      font-size: 2rem !important;
+      line-height: 1.5 !important;
+    }
+    
+    /* Better spacing for navigation buttons */
+    #navigation-buttons {
+      gap: 1.5rem !important;
+      margin-top: 2rem !important;
+    }
+    
+    #navigation-buttons button {
+      font-size: 1.125rem !important;
+      padding: 0.875rem 2rem !important;
+      min-width: 140px;
+    }
+    
+    /* LEARN button - all styles defined inline in HTML for better gradient control */
+    
+    /* Progress section with better spacing */
+    #progress-section {
+      max-width: 900px;
+      margin: 0 auto 2rem auto !important;
+    }
+    
+    /* Stats cards larger */
+    .stat-card {
+      padding: 1.5rem !important;
+    }
+    
+    .stat-card p:first-child {
+      font-size: 1rem !important;
+    }
+    
+    .stat-card p:last-child {
+      font-size: 2rem !important;
+    }
+    
+    /* Answer buttons for multi-choice larger */
+    .mc-btn {
+      font-size: 1.125rem !important;
+      padding: 1.25rem 2rem !important;
+      margin-bottom: 1rem !important;
+    }
+    
+    /* Container with better max-width */
+    #study-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+  }
+  
+  /* Extra large screens - even more spacious */
+  @media (min-width: 1280px) {
+    #flashcard-container {
+      min-height: 500px;
+      max-width: 900px;
+    }
+    
+    .flashcard-front, .flashcard-back {
+      font-size: 1.75rem !important;
+      padding: 4rem !important;
+    }
+    
+    #study-container {
+      max-width: 1400px;
+    }
+  }
+  
+  /* Quick Actions Styling (Star + Focus buttons) */
+  #quick-actions {
+    transition: all 0.3s ease;
+  }
+  
+  /* Star Button - Fixed position in top-right corner of flashcard - Mobile First */
+  .star-btn-corner {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 10;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1.125rem;
+  }
+  
+  @media (min-width: 640px) {
+    .star-btn-corner {
+      top: 0.75rem;
+      right: 0.75rem;
+      width: 2.75rem;
+      height: 2.75rem;
+      font-size: 1.375rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .star-btn-corner {
+      top: 1rem;
+      right: 1rem;
+      width: 3.25rem;
+      height: 3.25rem;
+      font-size: 1.625rem;
+    }
+  }
+  
+  .star-btn-corner.unstarred {
+    color: #d1d5db;
+  }
+  
+  .star-btn-corner.unstarred:hover {
+    color: #fbbf24;
+    transform: scale(1.15);
+  }
+  
+  .star-btn-corner.starred {
+    color: #fbbf24;
+  }
+  
+  .star-btn-corner.starred:hover {
+    color: #f59e0b;
+    transform: scale(1.15);
+  }
+  
+  .star-btn-corner:active {
+    transform: scale(0.95);
+  }
+  
+  /* Removed duplicate styles - now using .star-btn-corner class above */
+  
+  /* Hide elements in fullscreen/focus mode */
+  body.focus-mode-active .hide-in-fullscreen {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Focus Mode - Centered, Clean Layout with 98vw/98vh limit */
+  body.focus-mode-active {
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  
+  /* Also fix html element */
+  body.focus-mode-active html {
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Hide top navigation (nav bar with logo and menu) in Focus Mode */
+  body.focus-mode-active nav {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: absolute !important;
+    visibility: hidden !important;
+  }
+  
+  /* Hide footer in Focus Mode */
+  body.focus-mode-active footer {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: absolute !important;
+    visibility: hidden !important;
+  }
+  
+  /* Remove ALL spacing from main container in Focus Mode */
+  body.focus-mode-active main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  
+  /* Remove container constraints */
+  body.focus-mode-active .container {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  body.focus-mode-active #study-container {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #f3f4f6 !important;
+  }
+  
+  body.focus-mode-active #flashcard-section {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  body.focus-mode-active #flashcard-container {
+    width: 98vw !important;
+    max-width: 98vw !important;
+    height: calc(100vh - 7rem) !important; /* Trừ progress (3rem) + nav buttons (4rem) */
+    max-height: calc(100vh - 7rem) !important;
+    margin: 0 auto !important;
+    margin-top: 3rem !important; /* Chỉ cần space cho progress bar ở top */
+    padding: 0.5rem !important;
+    padding-bottom: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+  
+  body.focus-mode-active .flashcard {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+  
+  body.focus-mode-active .flashcard-inner {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  
+  body.focus-mode-active .flashcard-front,
+  body.focus-mode-active .flashcard-back {
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0.5rem !important; /* Smaller padding on mobile */
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+  }
+  
+  /* Hide focus button in focus mode (exit button is now in progress section) */
+  body.focus-mode-active #focus-btn {
+    display: none !important;
+  }
+  
+  /* Show exit button in progress section when in focus mode */
+  body.focus-mode-active #exit-focus-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  /* Ensure all buttons have proper alignment */
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Quick Actions Styling (Star + Focus buttons) */
+  body.focus-mode-active #quick-actions {
+    display: none !important;
+  }
+  
+  /* Hide old star button reference (if any) in focus mode */
+  body.focus-mode-active #star-btn,
+  body.focus-mode-active #star-btn-top {
+    /* Keep star button visible in focus mode, but smaller */
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+    font-size: 1.25rem !important;
+    top: 0.5rem !important;
+    right: 0.5rem !important;
+    z-index: 60 !important; /* Above other elements */
+  }
+  
+  /* Hide focus section in focus mode */
+  body.focus-mode-active #focus-section {
+    display: none !important;
+  }
+  
+  /* Content scaling - Mobile optimized for 98% display */
+  body.focus-mode-active #word-content {
+    font-size: clamp(0.75rem, 2.5vw, 1.25rem) !important; /* Smaller on mobile */
+    line-height: 1.4 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important; /* Center text on mobile */
+    overflow-y: auto !important;
+    padding: 0.5rem !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+  
+  body.focus-mode-active #definition-content {
+    font-size: clamp(0.875rem, 3vw, 1.5rem) !important; /* Smaller on mobile */
+    line-height: 1.4 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    overflow-y: auto !important;
+    padding: 0.5rem !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Multi-choice in focus mode - Mobile optimized */
+  body.focus-mode-active .mc-header {
+    display: none;
+  }
+  
+  body.focus-mode-active .mc-container {
+    padding: 0.5rem !important; /* Minimal padding on mobile */
+    margin: 0 auto !important; /* Center horizontally */
+    max-height: 100% !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important; /* Center content */
+    justify-content: center !important; /* Center vertically */
+  }
+  
+  body.focus-mode-active .mc-question {
+    font-size: clamp(0.875rem, 3vw, 1.5rem) !important; /* Smaller on mobile */
+    margin-bottom: 0.5rem !important;
+    line-height: 1.3 !important;
+    flex-shrink: 0 !important;
+    text-align: center !important; /* Center text */
+    width: 100% !important;
+  }
+  
+  body.focus-mode-active .mc-instruction {
+    font-size: clamp(0.625rem, 1.5vw, 0.875rem) !important; /* Smaller on mobile */
+    margin-bottom: 0.5rem !important;
+    flex-shrink: 0 !important;
+    text-align: center !important; /* Center text */
+  }
+  
+  body.focus-mode-active .mc-options {
+    gap: 0.375rem !important; /* Tighter gap on mobile */
+    margin-bottom: 0.625rem !important;
+    flex-shrink: 0 !important;
+    width: 100% !important; /* Full width for options */
+  }
+  
+  body.focus-mode-active .mc-option {
+    padding: 0.5rem 0.625rem !important; /* Compact on mobile */
+    min-height: auto !important;
+    width: 100% !important; /* Full width options */
+  }
+  
+  body.focus-mode-active .mc-number {
+    width: 1.5rem !important; /* Smaller on mobile */
+    height: 1.5rem !important;
+    min-width: 1.5rem !important;
+    font-size: 0.75rem !important;
+    margin-right: 0.5rem !important;
+  }
+  
+  body.focus-mode-active .mc-option.correct .mc-number,
+  body.focus-mode-active .mc-option.incorrect .mc-number {
+    font-size: 0.8125rem !important;
+  }
+  
+  body.focus-mode-active .mc-text {
+    font-size: clamp(0.75rem, 2.5vw, 1rem) !important; /* Smaller on mobile */
+    line-height: 1.3 !important;
+  }
+  
+  body.focus-mode-active .mc-btn,
+  body.focus-mode-active .mc-btn-correct,
+  body.focus-mode-active .mc-btn-incorrect,
+  body.focus-mode-active .mc-btn-secondary {
+    font-size: clamp(0.75rem, 2vw, 0.9375rem) !important; /* Smaller on mobile */
+    padding: 0.625rem 0.875rem !important;
+    margin-bottom: 0.375rem !important;
+    flex-shrink: 0 !important;
+  }
+  
+  /* Answer buttons in Focus Mode - Fixed at bottom on mobile */
+  body.focus-mode-active #answer-buttons-section {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    padding: 0.375rem 0.5rem !important; /* Giảm padding */
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
+    z-index: 50 !important;
+    margin: 0 !important;
+  }
+  
+  body.focus-mode-active #flashcard-buttons-wrapper {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+  }
+  
+  body.focus-mode-active #answer-buttons-section button {
+    font-size: clamp(0.75rem, 2vw, 0.875rem) !important;
+    padding: 0.5rem 0.75rem !important; /* Giảm padding button để fit 4 buttons */
+    font-weight: 600 !important;
+    flex: 1 !important; /* Equal width for all buttons */
+    max-width: 25% !important; /* Prevent buttons from being too wide */
+  }
+  
+  /* Hide text on very small screens, show icons only */
+  @media (max-width: 380px) {
+    body.focus-mode-active #answer-buttons-section button span {
+      display: none;
+    }
+    body.focus-mode-active #answer-buttons-section button {
+      padding: 0.625rem !important;
+    }
+  }
+
+  /* Navigation buttons in Focus Mode - Only for multi-choice */
+  body.focus-mode-active #navigation-buttons {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    padding: 0.375rem 0.5rem !important; /* Giảm padding */
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
+    z-index: 50 !important;
+    margin: 0 !important;
+    /* REMOVED: display: flex !important - Let JavaScript control visibility */
+    opacity: 1 !important;
+  }
+
+  body.focus-mode-active #navigation-buttons button {
+    font-size: clamp(0.875rem, 2.5vw, 1rem) !important;
+    padding: 0.625rem 0.875rem !important; /* Giảm padding button */
+    font-weight: 600 !important;
+  }
+
+  /* Progress bar in Focus Mode - Always visible */
+  body.focus-mode-active #progress-section {
+    position: fixed !important;
+    top: 0 !important; /* Đặt sát top, không lãng phí không gian */
+    left: 0 !important;
+    right: 0 !important;
+    padding: 0.5rem 0.75rem !important; /* Tăng padding cho dễ nhìn */
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+    z-index: 40 !important;
+    margin: 0 !important;
+    display: block !important; /* Luôn hiển thị */
+    opacity: 1 !important;
+  }
+  
+  /* Random button in Focus Mode - Compact */
+  body.focus-mode-active #random-toggle-btn {
+    display: flex !important;
+    width: 1.75rem !important; /* Nhỏ hơn */
+    height: 1.75rem !important;
+  }
+  
+  body.focus-mode-active #random-toggle-btn i {
+    font-size: 0.75rem !important; /* Icon nhỏ hơn */
+  }
+  
+  /* Progress section compact styles */
+  body.focus-mode-active #progress-section .flex.justify-between {
+    margin-bottom: 0.25rem !important; /* Giảm margin bottom */
+  }
+  
+  body.focus-mode-active #progress-section .text-sm,
+  body.focus-mode-active #progress-section .text-gray-600 {
+    font-size: 0.6875rem !important; /* Text nhỏ hơn: 11px */
+    line-height: 1.2 !important;
+  }
+  
+  /* Progress bar thấp hơn */
+  body.focus-mode-active #progress-section .bg-gray-200 {
+    height: 0.25rem !important; /* Từ 0.5rem xuống 0.25rem (4px) */
+  }
+  
+  body.focus-mode-active #progress-section .bg-blue-600 {
+    height: 0.25rem !important;
+  }
+  
+  /* Focus hint responsive */
+  #focus-hint {
+    font-size: 0.75rem !important;
+    padding: 0.5rem 1rem !important;
+    max-width: 90vw !important;
+    text-align: center !important;
+  }
+  
+  @media (min-width: 768px) {
+    #focus-hint {
+      font-size: 0.875rem !important;
+      padding: 0.75rem 1.5rem !important;
+      max-width: auto !important;
+    }
+  }
+  
+  /* Desktop enhancements for Focus Mode */
+  @media (min-width: 768px) {
+    /* Desktop: Progress bar styling */
+    body.focus-mode-active #progress-section {
+      display: block !important;
+      opacity: 1 !important;
+      top: 3.5rem !important;
+      padding: 0.5rem 2rem !important; /* Padding bình thường cho desktop */
+      max-width: 1200px !important;
+      left: 50% !important;
+      right: auto !important;
+      transform: translateX(-50%) !important;
+    }
+    
+    /* Desktop: Reset progress section text size */
+    body.focus-mode-active #progress-section .text-sm,
+    body.focus-mode-active #progress-section .text-gray-600 {
+      font-size: 0.875rem !important; /* Trở lại kích thước bình thường */
+      line-height: 1.5 !important;
+    }
+    
+    /* Desktop: Progress bar height bình thường */
+    body.focus-mode-active #progress-section .bg-gray-200,
+    body.focus-mode-active #progress-section .bg-blue-600 {
+      height: 0.5rem !important; /* 8px - kích thước bình thường */
+    }
+    
+    /* Desktop: Random button size bình thường */
+    body.focus-mode-active #random-toggle-btn {
+      width: 2rem !important;
+      height: 2rem !important;
+    }
+    
+    body.focus-mode-active #random-toggle-btn i {
+      font-size: 0.875rem !important;
+    }
+    
+    body.focus-mode-active #flashcard-container {
+      margin-top: 3.5rem !important; /* Space cho progress bar (lớn hơn một chút trên desktop) */
+      padding: 1rem !important;
+      padding-bottom: 0 !important;
+    }
+    
+    body.focus-mode-active .flashcard-front,
+    body.focus-mode-active .flashcard-back {
+      padding: 2rem !important;
+    }
+    
+    body.focus-mode-active #focus-btn {
+      top: 1rem !important;
+      right: 1rem !important;
+      padding: 0.875rem 1.5rem !important;
+      font-size: 1rem !important;
+    }
+    
+    body.focus-mode-active #word-content {
+      padding: 2rem !important;
+      font-size: clamp(1.25rem, 2.5vw, 2rem) !important;
+      line-height: 1.5 !important;
+      text-align: center !important; /* Keep centered on desktop too */
+    }
+    
+    body.focus-mode-active #definition-content {
+      padding: 2rem !important;
+      font-size: clamp(1.5rem, 3vw, 2.5rem) !important;
+      line-height: 1.5 !important;
+      text-align: center !important;
+    }
+    
+    body.focus-mode-active .mc-container {
+      padding: 2rem !important;
+      max-width: 1000px !important; /* Limit width on large screens */
+    }
+    
+    body.focus-mode-active .mc-question {
+      font-size: clamp(1.5rem, 3vw, 2.25rem) !important;
+      margin-bottom: 1rem !important;
+      line-height: 1.4 !important;
+      text-align: center !important; /* Center on desktop too */
+    }
+    
+    body.focus-mode-active .mc-instruction {
+      font-size: 1rem !important;
+      margin-bottom: 0.75rem !important;
+      text-align: center !important; /* Center on desktop too */
+    }
+    
+    body.focus-mode-active .mc-option {
+      padding: 0.875rem 1.125rem !important;
+    }
+    
+    body.focus-mode-active .mc-options {
+      gap: 0.625rem !important;
+      margin-bottom: 1.25rem !important;
+    }
+    
+    body.focus-mode-active .mc-number {
+      width: 2.25rem !important;
+      height: 2.25rem !important;
+      min-width: 2.25rem !important;
+      font-size: 1rem !important;
+      margin-right: 0.875rem !important;
+    }
+    
+    body.focus-mode-active .mc-option.correct .mc-number,
+    body.focus-mode-active .mc-option.incorrect .mc-number {
+      font-size: 1.125rem !important;
+    }
+    
+    body.focus-mode-active .mc-text {
+      font-size: clamp(1.125rem, 2vw, 1.5rem) !important;
+      line-height: 1.4 !important;
+    }
+    
+    body.focus-mode-active .mc-btn,
+    body.focus-mode-active .mc-btn-correct,
+    body.focus-mode-active .mc-btn-incorrect,
+    body.focus-mode-active .mc-btn-secondary {
+      font-size: 1.125rem !important;
+      padding: 1rem 1.5rem !important;
+      margin-bottom: 0.625rem !important;
+    }
+    
+    /* Answer buttons on desktop - bottom bar with more space */
+    body.focus-mode-active #answer-buttons-section {
+      padding: 1rem 2rem !important;
+      max-width: 1200px !important;
+      margin: 0 auto !important;
+      left: 50% !important;
+      right: auto !important;
+      transform: translateX(-50%) !important;
+    }
+    
+    body.focus-mode-active #flashcard-buttons-wrapper {
+      gap: 1rem !important;
+    }
+    
+    body.focus-mode-active #answer-buttons-section button {
+      font-size: 1rem !important;
+      padding: 0.875rem 1.5rem !important;
+      flex: 0 1 auto !important; /* Don't force equal width on desktop */
+      max-width: none !important;
+    }
+
+    /* Navigation buttons on desktop - Only for multi-choice */
+    body.focus-mode-active #navigation-buttons {
+      /* REMOVED: display: flex !important - Let JavaScript control visibility */
+      opacity: 1 !important;
+      padding: 1rem 2rem !important;
+      max-width: 1200px !important;
+      margin: 0 auto !important;
+      left: 50% !important;
+      right: auto !important;
+      transform: translateX(-50%) !important;
+    }
+
+    body.focus-mode-active #navigation-buttons button {
+      font-size: 1.125rem !important;
+      padding: 1rem 2rem !important;
+    }
+
+    /* Progress bar on desktop */
+    body.focus-mode-active #progress-section {
+      padding: 1rem 2rem !important;
+      max-width: 1200px !important;
+      left: 50% !important;
+      right: auto !important;
+      transform: translateX(-50%) !important;
+      top: 3.5rem !important;
+    }
+    
+    /* Random button larger on desktop */
+    body.focus-mode-active #random-toggle-btn {
+      width: 2.5rem !important;
+      height: 2.5rem !important;
+    }
+    
+    body.focus-mode-active #random-toggle-btn i {
+      font-size: 1rem !important;
+    }
+  }
+  
+  /* Clean scrollbar for Focus Mode */
+  body.focus-mode-active #word-content::-webkit-scrollbar,
+  body.focus-mode-active #definition-content::-webkit-scrollbar,
+  body.focus-mode-active .mc-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  body.focus-mode-active #word-content::-webkit-scrollbar-track,
+  body.focus-mode-active #definition-content::-webkit-scrollbar-track,
+  body.focus-mode-active .mc-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+  }
+  
+  body.focus-mode-active #word-content::-webkit-scrollbar-thumb,
+  body.focus-mode-active #definition-content::-webkit-scrollbar-thumb,
+  body.focus-mode-active .mc-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+  }
+  
+  body.focus-mode-active #word-content::-webkit-scrollbar-thumb:hover,
+  body.focus-mode-active #definition-content::-webkit-scrollbar-thumb:hover,
+  body.focus-mode-active .mc-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Firefox scrollbar */
+  body.focus-mode-active #word-content,
+  body.focus-mode-active #definition-content,
+  body.focus-mode-active .mc-container {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Custom scrollbar for content */
+  #study-container.fullscreen-mode #word-content::-webkit-scrollbar,
+  #study-container.fullscreen-mode #definition-content::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  #study-container.fullscreen-mode #word-content::-webkit-scrollbar-track,
+  #study-container.fullscreen-mode #definition-content::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  #study-container.fullscreen-mode #word-content::-webkit-scrollbar-thumb,
+  #study-container.fullscreen-mode #definition-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+  }
+  
+  #study-container.fullscreen-mode #word-content::-webkit-scrollbar-thumb:hover,
+  #study-container.fullscreen-mode #definition-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Mobile fullscreen optimizations */
+  @media (max-width: 768px) {
+    #study-container.fullscreen-mode .flashcard {
+      height: 98vh;
+    }
+    
+    #study-container.fullscreen-mode #word-content,
+    #study-container.fullscreen-mode #definition-content {
+      font-size: clamp(1.25rem, 6vw, 2.5rem);
+      padding: 0.75rem;
+      max-height: calc(98vh - 180px);
+    }
+  }
+  
+  /* Answer buttons in fullscreen - fixed at bottom */
+  #study-container.fullscreen-mode .flex.space-x-4 {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 0.5rem;
+    background: white;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    z-index: 30;
+  }
+  
+  #study-container.fullscreen-mode .flex.space-x-4 button {
+    font-size: 1.25rem;
+    padding: 1rem;
+  }
+  
+  /* Note section in fullscreen - stays visible but compact */
+  #study-container.fullscreen-mode #note-section {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    z-index: 40;
+    max-width: 600px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  
+  #study-container.fullscreen-mode #note-section textarea {
+    max-height: 150px;
+    font-size: 0.9rem;
+  }
+  
+  @media (max-width: 768px) {
+    #study-container.fullscreen-mode .flex.space-x-4 button {
+      font-size: 1rem;
+      padding: 0.75rem;
+    }
+  }
+</style>
+</style>

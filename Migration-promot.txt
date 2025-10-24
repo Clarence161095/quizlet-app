@@ -1,0 +1,21 @@
+App giờ đã hoàn hảo quá rồi, tuy nhiên tôi muốn đại phẫu thuật lại app như sau.
+Giờ tôi muốn tạo version 2.0 của app với các thay đổi sau:
+1. App giờ sẽ là Single Page Application (SPA) sử dụng React với Vite làm build tool giao diện giống 100% hiện tại logic giống 100% hiện tại chỉ khác là đổi công nghệ.
+2. Backend sẽ giữ nguyên hiện tại sử dụng nodejs express không đổi.
+3. Tạo API RESTful trên backend để giao tiếp với frontend React.
+4. DB thì sử dụng PostgreSQL thay vì Sqlite như hiện tại.
+5. Sử dụng docker compose để triển khai cả frontend và backend và postgresql trong cùng một mạng nội bộ.
+6. Sử dụng Nginx làm reverse proxy để phục vụ frontend và chuyển tiếp các yêu cầu API đến backend.
+7. Để quá trình migration được hoàn hảo thì phải thực hiện bằng cách copy toàn bộ source hiện tại vào 1 folder là version_1.0 và tạo folder version_2.0 để phát triển version mới. Nhớ đừng đừng vào folder version_1.0 để sửa gì hết vì nó dùng để tham khảo tạo version_2.0.
+8. Sáu đó hãy thực hiện tạo file để migration dữ liệu từ Sqlite sang PostgreSQL trên server của tôi để đảm bảo dữ liệu không bị mất khi chuyển đổi hãy ssh vào server của tôi để thực hiện, tạo sẵn file migration để tôi chạy migration.
+9. App version 2.0 sẽ run lên chỉ cần chạy docker-compose up là được.
+10. Nếu chạy ở local thì Vite sẽ hỗ trợ public trong cùng mạng nội bộ để test trên các thiết bị khác trong cùng mạng LAN.
+
+Đầu tiên hãy đọc toàn bộ source code, hoàn bộ file nằm trong repo này và thực hiện của tôi sau đó đưa ra chiến lược để migration một cách chuẩn xác nhất có thể nhớ giao diện phải chuẩn giống 100% hiện tại và logic cũng phải giống 100% hiện tại chỉ có khác công nghệ mà thôi.
+
+-----
+
+Tiếp tục cho đến khi hoàn thành 100% run được trên local và tôi sẽ test hoàn chỉnh sau khi mọi thứ đã migration xong.
+
+1. Để việc Migration được chính xác bạn phải có 1 file Migration Plan chi tiết từng bước một để thực hiện việc chuyển đổi từ version 1.0 sang version 2.0. Dưới đây là chiến lược chi tiết và có check list để đảm bảo mọi thứ chính xác.
+2. Bạn phải có một file summary chat để tóm tắt toàn bộ quá trình migration của đoạn chat này cho tôi, hãy lưu lại để tránh việc miss các thứ bạn đã làm và check list lại để đảm bảo việc migration được hoàn hảo.

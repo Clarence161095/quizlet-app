@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+    <div class="text-center mb-8">
+      <h1 class="text-2xl font-bold text-blue-600 mb-2">
+        <i class="fas fa-shield-alt"></i> Setup Multi-Factor Authentication
+      </h1>
+      <p class="text-gray-600">Scan the QR code with your authenticator app</p>
+      
+      <% if (locals.isForced) { %>
+        <div class="mt-4 bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded text-sm">
+          <i class="fas fa-info-circle"></i> You must setup MFA before continuing.
+        </div>
+      <% } %>
+    </div>
+
+    <div class="mb-6">
+      <div class="bg-white p-4 rounded-lg border-2 border-gray-200 text-center">
+        <img src="<%= qrCode %>" alt="QR Code" class="mx-auto" style="max-width: 250px;">
+      </div>
+      
+      <div class="mt-4 p-4 bg-gray-50 rounded">
+        <p class="text-sm text-gray-600 mb-2">
+          <i class="fas fa-info-circle"></i> Can't scan? Enter this code manually:
+        </p>
+        <code class="block bg-white p-2 rounded text-center font-mono text-sm break-all">
+          <%= secret %>
+        </code>
+      </div>
+    </div>
+
+    <form action="/auth/mfa-setup" method="POST">
+      <div class="mb-6">
+        <label class="block text-gray-700 mb-2" for="token">
+          <i class="fas fa-key"></i> Enter verification code
+        </label>
+        <input 
+          type="text" 
+          id="token" 
+          name="token" 
+          required
+          maxlength="6"
+          pattern="[0-9]{6}"
+          class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-2xl tracking-widest"
+          placeholder="000000"
+          autocomplete="off"
+        >
+        <p class="text-sm text-gray-500 mt-1">Enter the 6-digit code from your authenticator app</p>
+      </div>
+
+      <button 
+        type="submit"
+        class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
+      >
+        <i class="fas fa-check-circle"></i> Verify and Enable MFA
+      </button>
+    </form>
+
+    <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+      <p class="text-sm text-gray-700">
+        <i class="fas fa-mobile-alt"></i> <strong>Recommended apps:</strong>
+      </p>
+      <ul class="text-sm text-gray-600 mt-2 space-y-1">
+        <li>• Google Authenticator</li>
+        <li>• Microsoft Authenticator</li>
+        <li>• Authy</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // Auto-submit when 6 digits are entered
+    document.getElementById('token').addEventListener('input', function(e) {
+      if (e.target.value.length === 6) {
+        e.target.form.submit();
+      }
+    });
+  </script>
+</body>
+</html>

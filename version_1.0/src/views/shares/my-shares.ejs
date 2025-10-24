@@ -1,0 +1,151 @@
+<div class="max-w-6xl mx-auto">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">
+    <i class="fas fa-handshake"></i> My Shares
+  </h1>
+
+  <!-- Received Shares Section -->
+  <div class="mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">
+      <i class="fas fa-inbox"></i> Received Shares
+    </h2>
+    
+    <% if (receivedShares.length === 0) { %>
+      <div class="bg-white p-8 rounded-lg shadow text-center text-gray-500">
+        <i class="fas fa-inbox text-4xl mb-2"></i>
+        <p>No one has shared anything with you yet</p>
+      </div>
+    <% } else { %>
+      <div class="grid gap-4 md:grid-cols-2">
+        <% receivedShares.forEach(share => { %>
+          <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex-1">
+                <h3 class="text-lg font-bold text-gray-800 mb-1">
+                  <% if (share.type === 'set') { %>
+                    <i class="fas fa-layer-group text-blue-600"></i>
+                  <% } else { %>
+                    <i class="fas fa-folder text-yellow-600"></i>
+                  <% } %>
+                  <%= share.name %>
+                </h3>
+                <p class="text-sm text-gray-600">
+                  From <strong><%= share.owner_username %></strong>
+                </p>
+                <p class="text-xs text-gray-500 mt-1">
+                  Shared <%= new Date(share.created_at).toLocaleString() %>
+                </p>
+              </div>
+              <% if (share.is_accepted) { %>
+                <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                  <i class="fas fa-check-circle"></i> Accepted
+                </span>
+              <% } else { %>
+                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">
+                  <i class="fas fa-clock"></i> Pending
+                </span>
+              <% } %>
+            </div>
+
+            <% if (!share.is_accepted) { %>
+              <a 
+                href="/shares/<%= share.type %>s/<%= share.share_token %>/view" 
+                class="block w-full text-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold"
+              >
+                <i class="fas fa-clone"></i> Accept & Clone
+              </a>
+            <% } else { %>
+              <div class="text-sm text-gray-600">
+                <i class="fas fa-info-circle"></i> You cloned this on <%= new Date(share.accepted_at).toLocaleString() %>
+              </div>
+            <% } %>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- Sent Shares Section -->
+  <div>
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">
+      <i class="fas fa-paper-plane"></i> Sent Shares
+    </h2>
+    
+    <% if (sentShares.length === 0) { %>
+      <div class="bg-white p-8 rounded-lg shadow text-center text-gray-500">
+        <i class="fas fa-paper-plane text-4xl mb-2"></i>
+        <p>You haven't shared anything yet</p>
+      </div>
+    <% } else { %>
+      <div class="grid gap-4 md:grid-cols-2">
+        <% sentShares.forEach(share => { %>
+          <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex-1">
+                <h3 class="text-lg font-bold text-gray-800 mb-1">
+                  <% if (share.type === 'set') { %>
+                    <i class="fas fa-layer-group text-blue-600"></i>
+                  <% } else { %>
+                    <i class="fas fa-folder text-yellow-600"></i>
+                  <% } %>
+                  <%= share.name %>
+                </h3>
+                <p class="text-sm text-gray-600">
+                  Shared with <strong><%= share.shared_with_username %></strong>
+                </p>
+                <p class="text-xs text-gray-500 mt-1">
+                  Shared <%= new Date(share.created_at).toLocaleString() %>
+                </p>
+              </div>
+              <% if (!share.is_accepted) { %>
+                <!-- Pending -->
+                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">
+                  <i class="fas fa-clock"></i> Pending
+                </span>
+              <% } else if (share.clone_exists > 0) { %>
+                <!-- Accepted and clone exists -->
+                <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                  <i class="fas fa-check-circle"></i> Active
+                </span>
+              <% } else { %>
+                <!-- Accepted but clone deleted -->
+                <span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">
+                  <i class="fas fa-trash"></i> Deleted
+                </span>
+              <% } %>
+            </div>
+
+            <div class="flex gap-2">
+              <a 
+                href="/<%= share.type %>s/<%= share.entity_id %>" 
+                class="flex-1 text-center bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition text-sm"
+              >
+                <i class="fas fa-eye"></i> View
+              </a>
+              
+              <% if (share.is_accepted && share.clone_exists === 0) { %>
+                <!-- Show Reshare button if accepted but deleted by recipient -->
+                <form action="/shares/reshare/<%= share.type %>/<%= share.share_id %>" method="POST" class="flex-1">
+                  <button 
+                    type="submit"
+                    class="w-full bg-purple-100 text-purple-700 px-4 py-2 rounded-lg hover:bg-purple-200 transition text-sm"
+                    onclick="return confirm('Reset this share to pending state?')"
+                  >
+                    <i class="fas fa-redo"></i> Reshare
+                  </button>
+                </form>
+              <% } else { %>
+                <!-- Show Manage button -->
+                <a 
+                  href="/shares/<%= share.type %>s/<%= share.entity_id %>/share" 
+                  class="flex-1 text-center bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition text-sm"
+                >
+                  <i class="fas fa-share"></i> Manage
+                </a>
+              <% } %>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+</div>

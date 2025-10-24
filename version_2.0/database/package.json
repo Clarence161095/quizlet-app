@@ -1,0 +1,12 @@
+{
+  "name": "qi-database-migration",
+  "version": "1.0.0",
+  "description": "Migration scripts for Qi Learning App",
+  "scripts": {
+    "migrate": "node migrate-sqlite-to-postgres.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.2.2",
+    "pg": "^8.11.3"
+  }
+}
