@@ -86,7 +86,10 @@ app.use((req, res, next) => {
   }
 });
 
-// Routes
+// API Routes (for React SPA)
+app.use('/api', require('./routes/api'));
+
+// Legacy EJS Routes (keep for now during migration)
 app.get('/', (req, res) => {
   if (req.isAuthenticated()) {
     return res.redirect('/dashboard');
