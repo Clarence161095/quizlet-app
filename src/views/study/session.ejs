@@ -311,7 +311,8 @@
   let isFlipped = false;
   let currentNote = null;
   let currentFilter = 'all';
-  let filteredFlashcards = [...flashcards];
+  // IMPORTANT: Start with allFlashcardsForStats for consistency with stats
+  let filteredFlashcards = [...allFlashcardsForStats];
   let isFocusMode = false;
   let selectedAnswer = null;
   let isRandomMode = false; // Random mode off by default
@@ -499,37 +500,41 @@
       card.classList.add('border-transparent');
     });
 
+    // CRITICAL FIX: Filter from allFlashcardsForStats (all cards) NOT flashcards (due cards only)
+    // This ensures filter results match the stats display
+    const sourceCards = allFlashcardsForStats;
+    
     // Filter flashcards - GIỮ NGUYÊN THỨ TỰ GỐC (không random)
     switch(filterType) {
       case 'all':
-        filteredFlashcards = [...flashcards];
+        filteredFlashcards = [...sourceCards];
         document.getElementById('stat-all').classList.remove('border-transparent');
         document.getElementById('stat-all').classList.add('border-blue-500');
         updateFilterInfo('all', 'All Cards', 'blue');
         break;
       case 'learned':
         // Learned: Tất cả các từ đã học (có learning_progress)
-        filteredFlashcards = flashcards.filter(card => card.has_progress);
+        filteredFlashcards = sourceCards.filter(card => card.has_progress);
         document.getElementById('stat-learned').classList.remove('border-transparent');
         document.getElementById('stat-learned').classList.add('border-green-500');
         updateFilterInfo('learned', 'Learned Cards', 'green');
         break;
       case 'learning':
         // Learning: Các từ đang học nhưng chưa mastered (consecutive_correct < 4)
-        filteredFlashcards = flashcards.filter(card => card.has_progress && card.consecutive_correct < 4);
+        filteredFlashcards = sourceCards.filter(card => card.has_progress && card.consecutive_correct < 4);
         document.getElementById('stat-learning').classList.remove('border-transparent');
         document.getElementById('stat-learning').classList.add('border-yellow-500');
         updateFilterInfo('learning', 'Learning Cards', 'yellow');
         break;
       case 'new':
         // New: Các từ chưa học (chưa có learning_progress)
-        filteredFlashcards = flashcards.filter(card => !card.has_progress);
+        filteredFlashcards = sourceCards.filter(card => !card.has_progress);
         document.getElementById('stat-new').classList.remove('border-transparent');
         document.getElementById('stat-new').classList.add('border-blue-500');
         updateFilterInfo('new', 'New Cards', 'blue');
         break;
       case 'starred':
-        filteredFlashcards = flashcards.filter(card => card.is_starred);
+        filteredFlashcards = sourceCards.filter(card => card.is_starred);
         document.getElementById('stat-starred').classList.remove('border-transparent');
         document.getElementById('stat-starred').classList.add('border-yellow-500');
         updateFilterInfo('starred', 'Starred Cards', 'yellow');
@@ -546,11 +551,11 @@
     if (filteredFlashcards.length === 0) {
       // Auto-switch to a filter with data
       const availableFilters = [
-        { type: 'all', count: flashcards.length },
-        { type: 'learned', count: flashcards.filter(c => c.has_progress).length },
-        { type: 'learning', count: flashcards.filter(c => c.has_progress && c.consecutive_correct < 4).length },
-        { type: 'new', count: flashcards.filter(c => !c.has_progress).length },
-        { type: 'starred', count: flashcards.filter(c => c.is_starred).length }
+        { type: 'all', count: sourceCards.length },
+        { type: 'learned', count: sourceCards.filter(c => c.has_progress).length },
+        { type: 'learning', count: sourceCards.filter(c => c.has_progress && c.consecutive_correct < 4).length },
+        { type: 'new', count: sourceCards.filter(c => !c.has_progress).length },
+        { type: 'starred', count: sourceCards.filter(c => c.is_starred).length }
       ];
       
       // Find first filter with data, excluding current
@@ -1104,7 +1109,10 @@
     .then(response => response.json())
     .then(data => {
       // Update local card data
+      // Update both flashcards and allFlashcardsForStats
       const originalCard = flashcards.find(c => c.id === card.id);
+      const statsCard = allFlashcardsForStats.find(c => c.id === card.id);
+      
       if (originalCard) {
         // Đánh dấu là đã học (có learning_progress)
         originalCard.has_progress = true;
@@ -1113,6 +1121,17 @@
           originalCard.consecutive_correct = (originalCard.consecutive_correct || 0) + 1;
         } else {
           originalCard.consecutive_correct = 0;
+        }
+      }
+      
+      // Update stats array too for consistency
+      if (statsCard) {
+        statsCard.has_progress = true;
+        
+        if (isCorrect) {
+          statsCard.consecutive_correct = (statsCard.consecutive_correct || 0) + 1;
+        } else {
+          statsCard.consecutive_correct = 0;
         }
       }
       
@@ -1177,13 +1196,22 @@
     })
     .then(response => response.json())
     .then(data => {
-      // Toggle star state in both arrays (convert to number for consistency)
+      // Toggle star state in ALL arrays (convert to number for consistency)
       const newStarState = card.is_starred ? 0 : 1;
       
+      // Update in flashcards (due cards)
       const originalCard = flashcards.find(c => c.id === card.id);
       if (originalCard) {
         originalCard.is_starred = newStarState;
       }
+      
+      // Update in allFlashcardsForStats (all cards)
+      const statsCard = allFlashcardsForStats.find(c => c.id === card.id);
+      if (statsCard) {
+        statsCard.is_starred = newStarState;
+      }
+      
+      // Update current card
       card.is_starred = newStarState;
       
       // Update all cards in filteredFlashcards that match this ID
@@ -1210,8 +1238,8 @@
       
       // Nếu đang filter by starred, cần re-filter để cập nhật danh sách
       if (currentFilter === 'starred') {
-        // Re-filter starred cards
-        filteredFlashcards = flashcards.filter(c => c.is_starred);
+        // Re-filter starred cards from allFlashcardsForStats
+        filteredFlashcards = allFlashcardsForStats.filter(c => c.is_starred);
         
         // Update total filtered count
         const totalFilteredEl = document.getElementById('total-filtered');
@@ -1292,10 +1320,39 @@
     
     // Restore filter from localStorage
     const savedFilter = localStorage.getItem(storageKey);
-    if (savedFilter && ['all', 'mastered', 'learning', 'new', 'starred'].includes(savedFilter)) {
-      filterCards(savedFilter);
+    
+    // Validate saved filter - check if it has cards
+    if (savedFilter && ['all', 'learned', 'learning', 'new', 'starred'].includes(savedFilter)) {
+      // Check if saved filter has cards
+      let hasCards = false;
+      switch(savedFilter) {
+        case 'all':
+          hasCards = allFlashcardsForStats.length > 0;
+          break;
+        case 'learned':
+          hasCards = allFlashcardsForStats.filter(c => c.has_progress).length > 0;
+          break;
+        case 'learning':
+          hasCards = allFlashcardsForStats.filter(c => c.has_progress && c.consecutive_correct < 4).length > 0;
+          break;
+        case 'new':
+          hasCards = allFlashcardsForStats.filter(c => !c.has_progress).length > 0;
+          break;
+        case 'starred':
+          hasCards = allFlashcardsForStats.filter(c => c.is_starred).length > 0;
+          break;
+      }
+      
+      if (hasCards) {
+        filterCards(savedFilter);
+      } else {
+        // Saved filter has no cards, clear it and use default 'all'
+        localStorage.removeItem(storageKey);
+        filterCards('all');
+      }
     } else {
-      loadCard(0);
+      // No saved filter or invalid, use default 'all'
+      filterCards('all');
     }
   }
   
