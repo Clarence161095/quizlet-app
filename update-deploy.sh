@@ -84,12 +84,12 @@ echo -e "${YELLOW}[5/5] Restarting application...${NC}"
 
 if command -v pm2 &> /dev/null; then
     # Using PM2
-    sudo pm2 restart qi-app
+    pm2 restart quizlet-app
     echo -e "${GREEN}✓ Application restarted with PM2${NC}"
     
     echo ""
     echo -e "${BLUE}Checking status...${NC}"
-    sudo pm2 status
+    pm2 status
 else
     echo -e "${YELLOW}! PM2 not found${NC}"
     echo "Please restart the application manually:"
@@ -111,18 +111,18 @@ echo "  ✓ Dependencies updated"
 echo "  ✓ Application restarted"
 echo ""
 echo -e "${BLUE}Useful Commands:${NC}"
-echo "  pm2 logs qi-app     - View application logs"
+echo "  pm2 logs quizlet-app     - View application logs"
 echo "  pm2 monit           - Monitor resources"
-echo "  pm2 restart qi-app  - Restart if needed"
+echo "  pm2 restart quizlet-app  - Restart if needed"
 echo ""
 echo -e "${BLUE}Backup Files:${NC}"
 echo "  Location: ${APP_DIR}/data/"
 echo "  Pattern: quizlet.db.backup-*"
 echo ""
 echo -e "${YELLOW}If you encounter issues:${NC}"
-echo "  1. Check logs: pm2 logs qi-app"
+echo "  1. Check logs: pm2 logs quizlet-app"
 echo "  2. Restore backup if needed: cp $BACKUP_FILE data/quizlet.db"
-echo "  3. Restart: pm2 restart qi-app"
+echo "  3. Restart: pm2 restart quizlet-app"
 echo ""
 echo -e "${GREEN}Done! 🚀${NC}"
 echo ""
