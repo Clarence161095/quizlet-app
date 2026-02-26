@@ -212,6 +212,132 @@ router.post('/change-password', async (req, res) => {
   res.redirect('/dashboard');
 });
 
+// ─── Forgot Password (via MFA) ────────────────────────────────────────────────
+
+// Step 1: Enter username
+router.get('/forgot-password', (req, res) => {
+  if (req.isAuthenticated()) return res.redirect('/dashboard');
+  res.render('auth/forgot-password', {
+    title: 'Forgot Password',
+    message: req.flash('error'),
+    success: req.flash('success')
+  });
+});
+
+router.post('/forgot-password', (req, res) => {
+  if (req.isAuthenticated()) return res.redirect('/dashboard');
+
+  const { username } = req.body;
+  const user = User.findByUsername(username);
+
+  if (!user) {
+    req.flash('error', 'No account found with that username.');
+    return res.redirect('/auth/forgot-password');
+  }
+
+  if (!user.mfa_enabled || !user.mfa_secret) {
+    req.flash('error', 'This account does not have MFA enabled. Please contact an administrator to reset your password.');
+    return res.redirect('/auth/forgot-password');
+  }
+
+  // Store username in session for next steps
+  req.session.forgotPasswordUsername = user.username;
+  req.session.forgotPasswordMfaVerified = false;
+  return res.redirect('/auth/forgot-password/mfa');
+});
+
+// Step 2: MFA verification
+router.get('/forgot-password/mfa', (req, res) => {
+  if (req.isAuthenticated()) return res.redirect('/dashboard');
+  if (!req.session.forgotPasswordUsername) return res.redirect('/auth/forgot-password');
+
+  res.render('auth/forgot-password-mfa', {
+    title: 'Verify Identity',
+    message: req.flash('error')
+  });
+});
+
+router.post('/forgot-password/mfa', (req, res) => {
+  if (req.isAuthenticated()) return res.redirect('/dashboard');
+  if (!req.session.forgotPasswordUsername) return res.redirect('/auth/forgot-password');
+
+  const { token } = req.body;
+  const user = User.findByUsername(req.session.forgotPasswordUsername);
+
+  if (!user) {
+    delete req.session.forgotPasswordUsername;
+    req.flash('error', 'Session expired. Please start over.');
+    return res.redirect('/auth/forgot-password');
+  }
+
+  const verified = speakeasy.totp.verify({
+    secret: user.mfa_secret,
+    encoding: 'base32',
+    token: token,
+    window: 1
+  });
+
+  if (!verified) {
+    req.flash('error', 'Invalid MFA code. Please try again.');
+    return res.redirect('/auth/forgot-password/mfa');
+  }
+
+  req.session.forgotPasswordMfaVerified = true;
+  return res.redirect('/auth/forgot-password/reset');
+});
+
+// Step 3: Set new password
+router.get('/forgot-password/reset', (req, res) => {
+  if (req.isAuthenticated()) return res.redirect('/dashboard');
+  if (!req.session.forgotPasswordUsername || !req.session.forgotPasswordMfaVerified) {
+    return res.redirect('/auth/forgot-password');
+  }
+
+  res.render('auth/forgot-password-reset', {
+    title: 'Set New Password',
+    message: req.flash('error')
+  });
+});
+
+router.post('/forgot-password/reset', async (req, res) => {
+  if (req.isAuthenticated()) return res.redirect('/dashboard');
+  if (!req.session.forgotPasswordUsername || !req.session.forgotPasswordMfaVerified) {
+    return res.redirect('/auth/forgot-password');
+  }
+
+  const { newPassword, confirmPassword } = req.body;
+
+  if (newPassword !== confirmPassword) {
+    req.flash('error', 'Passwords do not match.');
+    return res.redirect('/auth/forgot-password/reset');
+  }
+
+  if (newPassword.length < 6) {
+    req.flash('error', 'Password must be at least 6 characters.');
+    return res.redirect('/auth/forgot-password/reset');
+  }
+
+  const user = User.findByUsername(req.session.forgotPasswordUsername);
+  if (!user) {
+    req.flash('error', 'Session expired. Please start over.');
+    delete req.session.forgotPasswordUsername;
+    delete req.session.forgotPasswordMfaVerified;
+    return res.redirect('/auth/forgot-password');
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  User.update(user.id, { password: hashedPassword });
+
+  // Clean up session
+  delete req.session.forgotPasswordUsername;
+  delete req.session.forgotPasswordMfaVerified;
+
+  req.flash('success', 'Password reset successfully! Please log in.');
+  return res.redirect('/auth/login');
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+
 // Logout
 router.get('/logout', (req, res, next) => {
   req.logout((err) => {
