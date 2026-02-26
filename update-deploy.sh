@@ -2,7 +2,6 @@
 
 #######################################
 # Qi Learning App - Update Deployment Script
-# Quick update for code changes
 #######################################
 
 # Colors
@@ -25,7 +24,7 @@ echo ""
 #######################################
 # 1. Backup Database
 #######################################
-echo -e "${YELLOW}[1/5] Backing up database...${NC}"
+echo -e "${YELLOW}[1/6] Backing up database...${NC}"
 
 if [ -f data/quizlet.db ]; then
     BACKUP_FILE="data/quizlet.db.backup-$(date +%Y%m%d-%H%M%S)"
@@ -37,26 +36,55 @@ fi
 echo ""
 
 #######################################
-# 2. Pull Latest Code (force sync with remote)
+# 2. Stop all & kill port
 #######################################
-echo -e "${YELLOW}[2/5] Syncing code with remote...${NC}"
+echo -e "${YELLOW}[2/6] Shutting down existing processes...${NC}"
+
+# Stop PM2 process if running
+if command -v pm2 &> /dev/null; then
+    if sudo pm2 describe qi-app > /dev/null 2>&1; then
+        sudo pm2 delete qi-app > /dev/null 2>&1
+        echo "  ✓ PM2 process stopped"
+    fi
+fi
+
+# Determine app port from .env (default 80)
+APP_PORT=80
+if [ -f .env ]; then
+    DOTENV_PORT=$(grep -E '^PORT=' .env | cut -d'=' -f2 | tr -d '[:space:]')
+    if [ -n "$DOTENV_PORT" ]; then
+        APP_PORT="$DOTENV_PORT"
+    fi
+fi
+
+# Kill any process using the app port
+if sudo fuser -k "${APP_PORT}/tcp" > /dev/null 2>&1; then
+    echo "  ✓ Killed processes on port $APP_PORT"
+else
+    echo "  i No processes on port $APP_PORT"
+fi
+
+# Also kill any stray node processes for this app just in case
+pkill -f "src/server.js" > /dev/null 2>&1 && echo "  ✓ Killed stray node processes" || true
+
+sleep 1
+echo -e "${GREEN}✓ Shutdown complete${NC}"
+echo ""
+
+#######################################
+# 3. Pull Latest Code
+#######################################
+echo -e "${YELLOW}[3/6] Syncing code with remote...${NC}"
 
 if [ -d .git ]; then
     BRANCH=$(git rev-parse --abbrev-ref HEAD)
     echo "Current branch: $BRANCH"
-
     git fetch origin
     LOCAL=$(git rev-parse HEAD)
     REMOTE=$(git rev-parse "origin/$BRANCH")
-
     if [ "$LOCAL" = "$REMOTE" ]; then
         echo -e "${BLUE}i Already up to date ($(git rev-parse --short HEAD))${NC}"
-    else
-        echo "Changes found - updating..."
     fi
-
-    # Hard reset to ensure working directory exactly matches remote
-    # (removes any untracked/modified files that shouldn't be there)
     git reset --hard "origin/$BRANCH"
     echo -e "${GREEN}✓ Code synced to: $(git rev-parse --short HEAD) - $(git log -1 --pretty=%s)${NC}"
 else
@@ -65,18 +93,18 @@ fi
 echo ""
 
 #######################################
-# 3. Install/Update Dependencies
+# 4. Install Dependencies
 #######################################
-echo -e "${YELLOW}[3/5] Updating dependencies...${NC}"
+echo -e "${YELLOW}[4/6] Updating dependencies...${NC}"
 
 npm install --omit=dev 2>&1 | grep -v "^npm warn"
 echo -e "${GREEN}✓ Dependencies updated${NC}"
 echo ""
 
 #######################################
-# 4. Check Database
+# 5. Check Database
 #######################################
-echo -e "${YELLOW}[4/5] Checking database...${NC}"
+echo -e "${YELLOW}[5/6] Checking database...${NC}"
 
 if [ ! -f data/quizlet.db ]; then
     echo "Database not found. Initializing..."
@@ -88,54 +116,28 @@ fi
 echo ""
 
 #######################################
-# 5. Restart Application & Verify
+# 6. Start Application
 #######################################
-echo -e "${YELLOW}[5/5] Restarting application...${NC}"
+echo -e "${YELLOW}[6/6] Starting application on port $APP_PORT...${NC}"
 
 if command -v pm2 &> /dev/null; then
-    # Stop old process completely first to ensure fresh code load
-    if sudo pm2 describe qi-app > /dev/null 2>&1; then
-        sudo pm2 delete qi-app > /dev/null 2>&1
-        echo "Stopped old process."
-    fi
+    # Clear old logs so "Recent logs" shows only fresh output
+    sudo rm -f data/pm2.log /root/.pm2/logs/qi-app-out.log /root/.pm2/logs/qi-app-error.log 2>/dev/null || true
 
-    # Load PORT from .env (default 3000)
-    APP_PORT=3000
-    if [ -f .env ]; then
-        DOTENV_PORT=$(grep -E '^PORT=' .env | cut -d'=' -f2 | tr -d '[:space:]')
-        if [ -n "$DOTENV_PORT" ]; then
-            APP_PORT="$DOTENV_PORT"
-        fi
-    fi
-
-    # Port 80 requires root AND conflicts with nginx - auto-fix to 3000
-    if [ "$APP_PORT" = "80" ]; then
-        echo -e "${YELLOW}! PORT=80 in .env conflicts with nginx. Auto-fixing to 3000...${NC}"
-        if [ -f .env ]; then
-            sed -i 's/^PORT=80/PORT=3000/' .env
-        else
-            echo "PORT=3000" >> .env
-        fi
-        APP_PORT=3000
-    fi
-
-    echo "Starting on port: $APP_PORT"
-
-    # Start fresh with updated code and explicit PORT env var
-    sudo PORT="$APP_PORT" pm2 start src/server.js \
+    sudo pm2 start src/server.js \
         --name qi-app \
         --cwd "$APP_DIR" \
         --log data/pm2.log \
         --merge-logs \
-        --restart-delay=1000 \
+        --restart-delay=2000 \
         --max-restarts=5
 
     sudo pm2 save
     echo -e "${GREEN}✓ Application started with PM2${NC}"
 
-    # Wait for app to be ready
+    # Wait for app to be ready (up to 15s)
     echo -n "Waiting for app to be ready"
-    for i in $(seq 1 10); do
+    for i in $(seq 1 15); do
         sleep 1
         echo -n "."
         STATUS=$(sudo pm2 jlist 2>/dev/null | python3 -c "
@@ -154,46 +156,52 @@ except:
         fi
     done
 
+    # Verify port is actually listening
+    sleep 1
+    if sudo fuser "${APP_PORT}/tcp" > /dev/null 2>&1; then
+        echo -e "${GREEN}✓ Port $APP_PORT is listening - deploy successful!${NC}"
+    else
+        echo -e "${RED}✗ Port $APP_PORT is NOT listening - check logs below${NC}"
+    fi
+
     echo ""
-    echo -e "${BLUE}Final status:${NC}"
+    echo -e "${BLUE}Final PM2 status:${NC}"
     sudo pm2 status
 
-    # Show last few log lines to confirm no errors
     echo ""
     echo -e "${BLUE}Recent logs:${NC}"
-    sudo pm2 logs qi-app --lines 5 --nostream 2>/dev/null || true
+    sudo pm2 logs qi-app --lines 8 --nostream 2>/dev/null || true
 else
-    echo -e "${YELLOW}! PM2 not found${NC}"
-    echo "Please restart the application manually: npm start"
+    echo -e "${YELLOW}! PM2 not found. Starting directly...${NC}"
+    nohup node src/server.js > data/app.log 2>&1 &
+    echo -e "${GREEN}✓ App started (PID: $!)${NC}"
 fi
 echo ""
 
 #######################################
-# Update Complete
+# Done
 #######################################
 echo "========================================="
 echo -e "${GREEN}  ✓ Update Complete!${NC}"
 echo "========================================="
 echo ""
-echo -e "${BLUE}What was updated:${NC}"
-echo "  ✓ Database backed up"
-echo "  ✓ Code updated (if using git)"
-echo "  ✓ Dependencies updated"
-echo "  ✓ Application restarted"
+echo -e "${BLUE}App is running on port: ${APP_PORT}${NC}"
 echo ""
 echo -e "${BLUE}Useful Commands:${NC}"
-echo "  pm2 logs qi-app     - View application logs"
-echo "  pm2 monit           - Monitor resources"
-echo "  pm2 restart qi-app  - Restart if needed"
+echo "  sudo pm2 logs qi-app      - View logs"
+echo "  sudo pm2 monit            - Monitor resources"  
+echo "  sudo pm2 restart qi-app   - Restart app"
+echo "  sh update-deploy.sh       - Deploy again"
 echo ""
 echo -e "${BLUE}Backup Files:${NC}"
 echo "  Location: ${APP_DIR}/data/"
 echo "  Pattern: quizlet.db.backup-*"
 echo ""
-echo -e "${YELLOW}If you encounter issues:${NC}"
-echo "  1. Check logs: pm2 logs qi-app"
-echo "  2. Restore backup if needed: cp $BACKUP_FILE data/quizlet.db"
-echo "  3. Restart: pm2 restart qi-app"
-echo ""
+if [ -n "$BACKUP_FILE" ]; then
+    echo -e "${YELLOW}To restore DB if needed:${NC}"
+    echo "  cp $BACKUP_FILE data/quizlet.db && sudo pm2 restart qi-app"
+    echo ""
+fi
 echo -e "${GREEN}Done! 🚀${NC}"
 echo ""
+
