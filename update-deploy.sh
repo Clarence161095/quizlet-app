@@ -83,10 +83,17 @@ echo ""
 echo -e "${YELLOW}[5/5] Restarting application...${NC}"
 
 if command -v pm2 &> /dev/null; then
-    # Using PM2
-    sudo pm2 restart qi-app
-    echo -e "${GREEN}✓ Application restarted with PM2${NC}"
-    
+    # Using PM2 - restart if running, start if not
+    if sudo pm2 describe qi-app > /dev/null 2>&1; then
+        sudo pm2 restart qi-app
+        echo -e "${GREEN}✓ Application restarted with PM2${NC}"
+    else
+        echo -e "${YELLOW}! Process 'qi-app' not found in PM2, starting fresh...${NC}"
+        sudo pm2 start src/server.js --name qi-app
+        sudo pm2 save
+        echo -e "${GREEN}✓ Application started with PM2${NC}"
+    fi
+
     echo ""
     echo -e "${BLUE}Checking status...${NC}"
     sudo pm2 status
