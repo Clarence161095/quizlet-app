@@ -40,14 +40,6 @@ echo ""
 #######################################
 echo -e "${YELLOW}[2/6] Shutting down existing processes...${NC}"
 
-# Stop PM2 process if running
-if command -v pm2 &> /dev/null; then
-    if sudo pm2 describe qi-app > /dev/null 2>&1; then
-        sudo pm2 delete qi-app > /dev/null 2>&1
-        echo "  ✓ PM2 process stopped"
-    fi
-fi
-
 # Determine app port from .env (default 80)
 APP_PORT=80
 if [ -f .env ]; then
@@ -57,17 +49,30 @@ if [ -f .env ]; then
     fi
 fi
 
-# Kill any process using the app port
-if sudo fuser -k "${APP_PORT}/tcp" > /dev/null 2>&1; then
-    echo "  ✓ Killed processes on port $APP_PORT"
-else
-    echo "  i No processes on port $APP_PORT"
-fi
+# Stop PM2 from BOTH current user AND root (two separate pm2 daemons)
+pm2 delete qi-app > /dev/null 2>&1 && echo "  ✓ PM2 (user) process stopped" || true
+sudo pm2 delete qi-app > /dev/null 2>&1 && echo "  ✓ PM2 (root) process stopped" || true
 
-# Also kill any stray node processes for this app just in case
-pkill -f "src/server.js" > /dev/null 2>&1 && echo "  ✓ Killed stray node processes" || true
+# Kill ALL node processes running this app (both user and root)
+sudo pkill -9 -f "src/server.js" > /dev/null 2>&1 && echo "  ✓ Killed node server processes" || true
 
 sleep 1
+
+# Hard kill anything still on the port
+if sudo fuser -k -9 "${APP_PORT}/tcp" > /dev/null 2>&1; then
+    echo "  ✓ Killed remaining processes on port $APP_PORT"
+else
+    echo "  i Port $APP_PORT was already free"
+fi
+
+# Wait and double-verify port is free
+sleep 2
+if sudo fuser "${APP_PORT}/tcp" > /dev/null 2>&1; then
+    echo -e "${RED}  ✗ Port $APP_PORT still in use - forcing kill...${NC}"
+    sudo fuser -k -9 "${APP_PORT}/tcp" > /dev/null 2>&1 || true
+    sleep 2
+fi
+
 echo -e "${GREEN}✓ Shutdown complete${NC}"
 echo ""
 
@@ -124,7 +129,8 @@ if command -v pm2 &> /dev/null; then
     # Clear old logs so "Recent logs" shows only fresh output
     sudo rm -f data/pm2.log /root/.pm2/logs/qi-app-out.log /root/.pm2/logs/qi-app-error.log 2>/dev/null || true
 
-    sudo pm2 start src/server.js \
+    # Pass PORT explicitly so app always starts on the right port regardless of .env
+    sudo PORT="$APP_PORT" pm2 start src/server.js \
         --name qi-app \
         --cwd "$APP_DIR" \
         --log data/pm2.log \
