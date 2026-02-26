@@ -99,9 +99,32 @@ if command -v pm2 &> /dev/null; then
         echo "Stopped old process."
     fi
 
-    # Start fresh with updated code
-    sudo pm2 start src/server.js \
+    # Load PORT from .env (default 3000)
+    APP_PORT=3000
+    if [ -f .env ]; then
+        DOTENV_PORT=$(grep -E '^PORT=' .env | cut -d'=' -f2 | tr -d '[:space:]')
+        if [ -n "$DOTENV_PORT" ]; then
+            APP_PORT="$DOTENV_PORT"
+        fi
+    fi
+
+    # Port 80 requires root AND conflicts with nginx - auto-fix to 3000
+    if [ "$APP_PORT" = "80" ]; then
+        echo -e "${YELLOW}! PORT=80 in .env conflicts with nginx. Auto-fixing to 3000...${NC}"
+        if [ -f .env ]; then
+            sed -i 's/^PORT=80/PORT=3000/' .env
+        else
+            echo "PORT=3000" >> .env
+        fi
+        APP_PORT=3000
+    fi
+
+    echo "Starting on port: $APP_PORT"
+
+    # Start fresh with updated code and explicit PORT env var
+    sudo PORT="$APP_PORT" pm2 start src/server.js \
         --name qi-app \
+        --cwd "$APP_DIR" \
         --log data/pm2.log \
         --merge-logs \
         --restart-delay=1000 \
