@@ -52,6 +52,8 @@ fi
 # Stop PM2 from BOTH current user AND root (two separate pm2 daemons)
 pm2 delete all > /dev/null 2>&1 || true
 pm2 kill > /dev/null 2>&1 && echo "  ✓ PM2 (ec2-user) daemon stopped" || true
+# Clear ec2-user PM2 dump so daemon never auto-restores old processes on next start
+rm -f ~/.pm2/dump.pm2 ~/.pm2/dump.pm2.bak > /dev/null 2>&1 || true
 sudo pm2 delete all > /dev/null 2>&1 || true
 echo "  ✓ PM2 (root) processes stopped"
 
