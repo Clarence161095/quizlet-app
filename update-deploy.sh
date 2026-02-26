@@ -5,13 +5,6 @@
 # Quick update for code changes
 #######################################
 
-set -e  # Exit on any error
-
-echo "========================================="
-echo "  Qi Learning App - Update Deployment"
-echo "========================================="
-echo ""
-
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -19,8 +12,13 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-APP_DIR="$(pwd)"
+APP_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$APP_DIR"
 
+echo "========================================="
+echo "  Qi Learning App - Update Deployment"
+echo "========================================="
+echo ""
 echo -e "${BLUE}Updating application at: ${APP_DIR}${NC}"
 echo ""
 
@@ -34,19 +32,33 @@ if [ -f data/quizlet.db ]; then
     cp data/quizlet.db "$BACKUP_FILE"
     echo -e "${GREEN}✓ Database backed up to: $BACKUP_FILE${NC}"
 else
-    echo -e "${YELLOW}! No database found (will be created)${NC}"
+    echo -e "${YELLOW}! No database found (will be created on first start)${NC}"
 fi
 echo ""
 
 #######################################
-# 2. Pull Latest Code (if using git)
+# 2. Pull Latest Code (force sync with remote)
 #######################################
-echo -e "${YELLOW}[2/5] Checking for updates...${NC}"
+echo -e "${YELLOW}[2/5] Syncing code with remote...${NC}"
 
 if [ -d .git ]; then
-    echo "Pulling latest changes from git..."
-    git pull
-    echo -e "${GREEN}✓ Code updated${NC}"
+    BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    echo "Current branch: $BRANCH"
+
+    git fetch origin
+    LOCAL=$(git rev-parse HEAD)
+    REMOTE=$(git rev-parse "origin/$BRANCH")
+
+    if [ "$LOCAL" = "$REMOTE" ]; then
+        echo -e "${BLUE}i Already up to date ($(git rev-parse --short HEAD))${NC}"
+    else
+        echo "Changes found - updating..."
+    fi
+
+    # Hard reset to ensure working directory exactly matches remote
+    # (removes any untracked/modified files that shouldn't be there)
+    git reset --hard "origin/$BRANCH"
+    echo -e "${GREEN}✓ Code synced to: $(git rev-parse --short HEAD) - $(git log -1 --pretty=%s)${NC}"
 else
     echo -e "${YELLOW}! Not a git repository (manual update)${NC}"
 fi
@@ -57,50 +69,79 @@ echo ""
 #######################################
 echo -e "${YELLOW}[3/5] Updating dependencies...${NC}"
 
-npm install --production
+npm install --omit=dev 2>&1 | grep -v "^npm warn"
 echo -e "${GREEN}✓ Dependencies updated${NC}"
 echo ""
 
 #######################################
-# 4. Run Database Migrations (if any)
+# 4. Check Database
 #######################################
 echo -e "${YELLOW}[4/5] Checking database...${NC}"
 
-# Check if database exists, if not initialize
 if [ ! -f data/quizlet.db ]; then
     echo "Database not found. Initializing..."
-    npm run init-db
+    node src/database/init.js
     echo -e "${GREEN}✓ Database initialized${NC}"
 else
-    echo -e "${GREEN}✓ Database exists${NC}"
-    echo -e "${BLUE}Note: If schema changed, run migrations manually${NC}"
+    echo -e "${GREEN}✓ Database exists - data preserved${NC}"
 fi
 echo ""
 
 #######################################
-# 5. Restart Application
+# 5. Restart Application & Verify
 #######################################
 echo -e "${YELLOW}[5/5] Restarting application...${NC}"
 
 if command -v pm2 &> /dev/null; then
-    # Using PM2 - restart if running, start if not
+    # Stop old process completely first to ensure fresh code load
     if sudo pm2 describe qi-app > /dev/null 2>&1; then
-        sudo pm2 restart qi-app
-        echo -e "${GREEN}✓ Application restarted with PM2${NC}"
-    else
-        echo -e "${YELLOW}! Process 'qi-app' not found in PM2, starting fresh...${NC}"
-        sudo pm2 start src/server.js --name qi-app
-        sudo pm2 save
-        echo -e "${GREEN}✓ Application started with PM2${NC}"
+        sudo pm2 delete qi-app > /dev/null 2>&1
+        echo "Stopped old process."
     fi
 
+    # Start fresh with updated code
+    sudo pm2 start src/server.js \
+        --name qi-app \
+        --log data/pm2.log \
+        --merge-logs \
+        --restart-delay=1000 \
+        --max-restarts=5
+
+    sudo pm2 save
+    echo -e "${GREEN}✓ Application started with PM2${NC}"
+
+    # Wait for app to be ready
+    echo -n "Waiting for app to be ready"
+    for i in $(seq 1 10); do
+        sleep 1
+        echo -n "."
+        STATUS=$(sudo pm2 jlist 2>/dev/null | python3 -c "
+import sys, json
+try:
+    procs = json.load(sys.stdin)
+    p = next((x for x in procs if x['name']=='qi-app'), None)
+    print(p['pm2_env']['status'] if p else 'not_found')
+except:
+    print('unknown')
+" 2>/dev/null || echo "unknown")
+        if [ "$STATUS" = "online" ]; then
+            echo ""
+            echo -e "${GREEN}✓ App is online!${NC}"
+            break
+        fi
+    done
+
     echo ""
-    echo -e "${BLUE}Checking status...${NC}"
+    echo -e "${BLUE}Final status:${NC}"
     sudo pm2 status
+
+    # Show last few log lines to confirm no errors
+    echo ""
+    echo -e "${BLUE}Recent logs:${NC}"
+    sudo pm2 logs qi-app --lines 5 --nostream 2>/dev/null || true
 else
     echo -e "${YELLOW}! PM2 not found${NC}"
-    echo "Please restart the application manually:"
-    echo "  npm start"
+    echo "Please restart the application manually: npm start"
 fi
 echo ""
 
