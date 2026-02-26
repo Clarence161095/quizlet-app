@@ -50,8 +50,10 @@ if [ -f .env ]; then
 fi
 
 # Stop PM2 from BOTH current user AND root (two separate pm2 daemons)
-pm2 delete qi-app > /dev/null 2>&1 && echo "  ✓ PM2 (user) process stopped" || true
-sudo pm2 delete qi-app > /dev/null 2>&1 && echo "  ✓ PM2 (root) process stopped" || true
+pm2 delete all > /dev/null 2>&1 || true
+pm2 kill > /dev/null 2>&1 && echo "  ✓ PM2 (ec2-user) daemon stopped" || true
+sudo pm2 delete all > /dev/null 2>&1 || true
+echo "  ✓ PM2 (root) processes stopped"
 
 # Kill ALL node processes running this app (both user and root)
 sudo pkill -9 -f "src/server.js" > /dev/null 2>&1 && echo "  ✓ Killed node server processes" || true
